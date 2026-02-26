@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HabitForge — AI Habit Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+  <style>
+    /* ── RESET & BASE ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0a0a0f;
+      --surface:  #13131f;
+      --card:     #1a1a2e;
+      --border:   #2a2a4a;
+      --accent:   #ff6b35;
+      --accent2:  #7c3aed;
+      --green:    #22c55e;
+      --red:      #ef4444;
+      --text:     #e8e8f0;
+      --muted:    #6b6b8a;
+      --xp:       #fbbf24;
+      --radius:   12px;
+    }
+
+    body {
+      font-family: 'Syne', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Grid noise texture overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: radial-gradient(circle at 20% 50%, rgba(124,58,237,0.06) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(255,107,53,0.06) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── LAYOUT ── */
+    .app { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 24px 16px 80px; }
+
+    /* ── HEADER ── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    .logo span { color: var(--accent); }
+
+    /* ── XP BAR ── */
+    .xp-widget {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 40px;
+      padding: 8px 16px;
+    }
+
+    .level-badge {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent);
+      background: rgba(255,107,53,0.15);
+      border: 1px solid rgba(255,107,53,0.3);
+      border-radius: 20px;
+      padding: 2px 8px;
+    }
+
+    .xp-bar-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 120px;
+    }
+
+    .xp-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .xp-bar {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .xp-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--xp), var(--accent));
+      border-radius: 3px;
+      transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* ── SCREENS ── */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ── ONBOARDING ── */
+    .onboarding-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 48px 40px;
+      text-align: center;
+      max-width: 440px;
+      margin: 60px auto;
+    }
+
+    .onboarding-card .emoji { font-size: 3.5rem; margin-bottom: 20px; }
+    .onboarding-card h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
+    .onboarding-card p { color: var(--muted); margin-bottom: 32px; line-height: 1.6; }
+
+    /* ── INPUTS & FORMS ── */
+    .form-group { margin-bottom: 16px; text-align: left; }
+    
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      font-size: 0.95rem;
+      padding: 12px 14px;
+      transition: border-color 0.2s;
+      outline: none;
+      resize: vertical;
+    }
+
+    input:focus, textarea:focus {
+      border-color: var(--accent2);
+    }
+
+    textarea { min-height: 80px; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: var(--radius);
+      font-family: 'Syne', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.15s, opacity 0.15s;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      width: 100%;
+    }
+
+    .btn-secondary {
+      background: var(--border);
+      color: var(--text);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--red);
+      border: 1px solid rgba(239,68,68,0.3);
+      font-size: 0.8rem;
+      padding: 6px 12px;
+    }
+
+    .btn-danger:hover { background: rgba(239,68,68,0.1); }
+
+    /* ── DASHBOARD GRID ── */
+    .dashboard-top {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .section-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+    }
+
+    /* ── HABIT CARDS ── */
+    .habits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .habit-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      transition: border-color 0.2s, transform 0.2s;
+      cursor: default;
+    }
+
+    .habit-card:hover { border-color: var(--accent2); transform: translateY(-2px); }
+    .habit-card.done { border-color: rgba(34,197,94,0.4); background: rgba(34,197,94,0.05); }
+
+    .habit-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .habit-name {
+      font-size: 1.05rem;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+
+    .done-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      font-family: 'Space Mono', monospace;
+      background: rgba(34,197,94,0.2);
+      color: var(--green);
+      border: 1px solid rgba(34,197,94,0.3);
+      border-radius: 20px;
+      padding: 3px 8px;
+      white-space: nowrap;
+    }
+
+    .habit-desc {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .habit-stats {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .stat-pill {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.75rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 10px;
+    }
+
+    .stat-pill.streak { color: var(--accent); }
+    .stat-pill.total { color: var(--accent2); }
+
+    .habit-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-verify {
+      flex: 1;
+      background: linear-gradient(135deg, var(--accent), #ff8c61);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 10px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: transform 0.15s, opacity 0.15s;
+    }
+
+    .btn-verify:hover { transform: translateY(-1px); opacity: 0.9; }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+
+    .empty-state .emoji { font-size: 3rem; margin-bottom: 12px; }
+    .empty-state h3 { font-size: 1.1rem; color: var(--text); margin-bottom: 8px; }
+    .empty-state p { font-size: 0.9rem; margin-bottom: 24px; }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(6px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      width: 100%;
+      max-width: 480px;
+      animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .modal-title { font-size: 1.2rem; font-weight: 800; }
+
+    .close-btn {
+      background: var(--border);
+      border: none;
+      color: var(--muted);
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .close-btn:hover { background: var(--surface); color: var(--text); }
+
+    /* ── IMAGE UPLOAD ── */
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      margin-bottom: 16px;
+    }
+
+    .upload-zone:hover { border-color: var(--accent2); background: rgba(124,58,237,0.05); }
+    .upload-zone.has-file { border-color: var(--green); background: rgba(34,197,94,0.05); }
+
+    .upload-zone input { display: none; }
+    .upload-zone-icon { font-size: 2rem; margin-bottom: 8px; }
+    .upload-zone-text { font-size: 0.85rem; color: var(--muted); }
+    .upload-zone-text strong { color: var(--text); }
+
+    /* ── RESULT CARD ── */
+    .result-card {
+      border-radius: 16px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .result-card.success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); }
+    .result-card.failure { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); }
+
+    .result-icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .result-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; }
+    .result-card.success .result-title { color: var(--green); }
+    .result-card.failure .result-title { color: var(--red); }
+    .result-explanation { font-size: 0.9rem; color: var(--muted); line-height: 1.6; margin-bottom: 16px; }
+
+    .xp-gained {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(251,191,36,0.15);
+      border: 1px solid rgba(251,191,36,0.3);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-family: 'Space Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--xp);
+    }
+
+    .streak-callout {
+      margin-top: 12px;
+      font-size: 0.85rem;
+      color: var(--accent);
+      font-weight: 700;
+    }
+
+    /* ── LOADING SPINNER ── */
+    .spinner {
+      width: 28px;
+      height: 28px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .verifying-state {
+      text-align: center;
+      padding: 32px;
+    }
+
+    .verifying-state p {
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    /* ── PROOF INSTRUCTIONS ── */
+    .proof-hint {
+      background: rgba(124,58,237,0.1);
+      border: 1px solid rgba(124,58,237,0.25);
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 0.85rem;
+      color: #a78bfa;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .proof-hint strong { display: block; margin-bottom: 4px; color: #c4b5fd; }
+
+    /* ── TOAST ── */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-size: 0.9rem;
+      animation: toastIn 0.3s ease;
+      max-width: 320px;
+    }
+
+    .toast.error { border-color: rgba(239,68,68,0.4); color: #fca5a5; }
+    .toast.success { border-color: rgba(34,197,94,0.4); color: #86efac; }
+
+    @keyframes toastIn {
+      from { transform: translateX(40px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      .header { flex-direction: column; gap: 16px; align-items: flex-start; }
+      .habits-grid { grid-template-columns: 1fr; }
+      .modal { padding: 24px 20px; }
+      .onboarding-card { padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="logo">Habit<span>Forge</span></div>
+    <div class="xp-widget" id="xpWidget" style="display:none">
+      <div class="level-badge" id="levelBadge">LVL 1</div>
+      <div class="xp-bar-wrap">
+        <div class="xp-label">
+          <span>XP</span>
+          <span id="xpText">0</span>
+        </div>
+        <div class="xp-bar">
+          <div class="xp-fill" id="xpFill" style="width:0%"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── SCREEN: ONBOARDING ── -->
+  <div id="screenOnboard" class="screen active">
+    <div class="onboarding-card">
+      <div class="emoji">⚒️</div>
+      <h1>Build Better Habits</h1>
+      <p>AI verifies your progress with real proof — no more checkbox cheating.</p>
+      <div class="form-group">
+        <label>Your Name</label>
+        <input type="text" id="onboardName" placeholder="Enter your name..." />
+      </div>
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="onboardEmail" placeholder="you@example.com" />
+      </div>
+      <button class="btn btn-primary" onclick="createUser()">🚀 Start Tracking</button>
+    </div>
+  </div>
+
+  <!-- ── SCREEN: DASHBOARD ── -->
+  <div id="screenDash" class="screen">
+    <div class="dashboard-top">
+      <div class="section-title">Your Habits</div>
+      <button class="btn btn-secondary" onclick="openAddModal()">+ New Habit</button>
+    </div>
+    <div id="habitsGrid" class="habits-grid">
+      <!-- habits injected here -->
+    </div>
+  </div>
+
+</div>
+
+<!-- ── MODAL: ADD HABIT ── -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">New Habit</div>
+      <button class="close-btn" onclick="closeModal('addModal')">✕</button>
+    </div>
+    <div class="form-group">
+      <label>Habit Name</label>
+      <input type="text" id="habitName" placeholder="e.g. Morning Run" />
+    </div>
+    <div class="form-group">
+      <label>Description (optional)</label>
+      <textarea id="habitDesc" placeholder="e.g. Run at least 1km every morning"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Proof Instructions</label>
+      <textarea id="habitProof" placeholder="e.g. Upload a screenshot of your fitness app showing today's run, or a photo of your running shoes outside"></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="addHabit()">Create Habit</button>
+  </div>
+</div>
+
+<!-- ── MODAL: VERIFY HABIT ── -->
+<div class="modal-overlay" id="verifyModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="verifyModalTitle">Verify Habit</div>
+      <button class="close-btn" onclick="closeModal('verifyModal')">✕</button>
+    </div>
+
+    <!-- Proof form state -->
+    <div id="verifyForm">
+      <div class="proof-hint">
+        <strong>📋 What counts as proof:</strong>
+        <span id="proofInstructions"></span>
+      </div>
+
+      <!-- Image upload -->
+      <div class="upload-zone" id="uploadZone" onclick="document.getElementById('proofFile').click()">
+        <input type="file" id="proofFile" accept="image/*" onchange="handleFileSelect(this)" />
+        <div class="upload-zone-icon">📷</div>
+        <div class="upload-zone-text" id="uploadText">
+          <strong>Upload proof image</strong><br>click to browse
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Or add a note</label>
+        <textarea id="proofNote" placeholder="Describe what you did..."></textarea>
+      </div>
+
+      <button class="btn btn-primary" onclick="submitVerification()">🤖 Verify with AI</button>
+    </div>
+
+    <!-- Verifying state -->
+    <div id="verifyLoading" style="display:none">
+      <div class="verifying-state">
+        <div class="spinner"></div>
+        <p>AI is reviewing your proof...</p>
+      </div>
+    </div>
+
+    <!-- Result state -->
+    <div id="verifyResult" style="display:none">
+      <!-- injected -->
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ─── STATE ─────────────────────────────────────────────────────────────────
+const API = 'http://localhost:3001/api';
+let currentUser = null;
+let currentHabitId = null;
+let habits = [];
+
+// ─── INIT ──────────────────────────────────────────────────────────────────
+window.onload = () => {
+  const savedId = localStorage.getItem('userId');
+  if (savedId) loadUser(savedId);
+};
+
+// ─── USER ──────────────────────────────────────────────────────────────────
+async function createUser() {
+  const name = document.getElementById('onboardName').value.trim();
+  const email = document.getElementById('onboardEmail').value.trim();
+  if (!name || !email) return toast('Please fill in both fields', 'error');
+
+  try {
+    const res = await fetch(`${API}/users`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email })
+    });
+    const data = await res.json();
+    if (!res.ok) return toast(data.error, 'error');
+
+    localStorage.setItem('userId', data.id);
+    await loadUser(data.id);
+    toast(`Welcome, ${data.name}! 🎉`, 'success');
+  } catch (e) {
+    toast('Cannot connect to server. Is it running?', 'error');
+  }
+}
+
+async function loadUser(id) {
+  try {
+    const res = await fetch(`${API}/users/${id}`);
+    if (!res.ok) { localStorage.removeItem('userId'); return; }
+    currentUser = await res.json();
+    showDashboard();
+    updateXpWidget();
+    loadHabits();
+  } catch (e) {
+    toast('Cannot connect to server. Is it running?', 'error');
+  }
+}
+
+function updateXpWidget() {
+  if (!currentUser) return;
+  const widget = document.getElementById('xpWidget');
+  widget.style.display = 'flex';
+  document.getElementById('levelBadge').textContent = `LVL ${currentUser.level}`;
+  document.getElementById('xpText').textContent = `${currentUser.xp} XP`;
+  const pct = Math.min(100, ((currentUser.xp % 50) / 50) * 100);
+  document.getElementById('xpFill').style.width = pct + '%';
+}
+
+// ─── SCREENS ──────────────────────────────────────────────────────────────
+function showDashboard() {
+  document.getElementById('screenOnboard').classList.remove('active');
+  document.getElementById('screenDash').classList.add('active');
+}
+
+// ─── HABITS ──────────────────────────────────────────────────────────────
+async function loadHabits() {
+  if (!currentUser) return;
+  const res = await fetch(`${API}/users/${currentUser.id}/habits`);
+  habits = await res.json();
+  renderHabits();
+}
+
+function renderHabits() {
+  const grid = document.getElementById('habitsGrid');
+
+  if (habits.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1">
+        <div class="emoji">🌱</div>
+        <h3>No habits yet</h3>
+        <p>Create your first habit to get started</p>
+        <button class="btn btn-primary" style="width:auto;padding:12px 28px" onclick="openAddModal()">+ Create Habit</button>
+      </div>`;
+    return;
+  }
+
+  grid.innerHTML = habits.map(h => `
+    <div class="habit-card ${h.completedToday ? 'done' : ''}">
+      <div class="habit-card-top">
+        <div class="habit-name">${escHtml(h.name)}</div>
+        ${h.completedToday ? '<span class="done-badge">✓ DONE</span>' : ''}
+      </div>
+      ${h.description ? `<p class="habit-desc">${escHtml(h.description)}</p>` : ''}
+      <div class="habit-stats">
+        <div class="stat-pill streak">🔥 ${h.streak} day streak</div>
+        <div class="stat-pill total">⚡ ${h.total_completions} total</div>
+      </div>
+      <div class="habit-actions">
+        ${h.completedToday
+          ? `<button class="btn-verify" style="opacity:0.5;cursor:default">✓ Verified Today</button>`
+          : `<button class="btn-verify" onclick="openVerifyModal(${h.id})">🤖 Submit Proof</button>`
+        }
+        <button class="btn btn-danger" onclick="deleteHabit(${h.id})">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ─── ADD HABIT ────────────────────────────────────────────────────────────
+function openAddModal() {
+  document.getElementById('habitName').value = '';
+  document.getElementById('habitDesc').value = '';
+  document.getElementById('habitProof').value = '';
+  openModal('addModal');
+}
+
+async function addHabit() {
+  const name = document.getElementById('habitName').value.trim();
+  const description = document.getElementById('habitDesc').value.trim();
+  const proof_instructions = document.getElementById('habitProof').value.trim();
+
+  if (!name || !proof_instructions) return toast('Name and proof instructions are required', 'error');
+
+  try {
+    const res = await fetch(`${API}/users/${currentUser.id}/habits`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, description, proof_instructions })
+    });
+    const data = await res.json();
+    if (!res.ok) return toast(data.error, 'error');
+
+    closeModal('addModal');
+    toast('Habit created! 🎯', 'success');
+    loadHabits();
+  } catch (e) {
+    toast('Failed to create habit', 'error');
+  }
+}
+
+async function deleteHabit(id) {
+  if (!confirm('Delete this habit and all its history?')) return;
+  await fetch(`${API}/habits/${id}`, { method: 'DELETE' });
+  toast('Habit deleted', 'success');
+  loadHabits();
+}
+
+// ─── VERIFY HABIT ─────────────────────────────────────────────────────────
+function openVerifyModal(habitId) {
+  const habit = habits.find(h => h.id === habitId);
+  if (!habit) return;
+
+  currentHabitId = habitId;
+  document.getElementById('verifyModalTitle').textContent = `Verify: ${habit.name}`;
+  document.getElementById('proofInstructions').textContent = habit.proof_instructions;
+  document.getElementById('proofNote').value = '';
+  document.getElementById('proofFile').value = '';
+  document.getElementById('uploadZone').classList.remove('has-file');
+  document.getElementById('uploadText').innerHTML = '<strong>Upload proof image</strong><br>click to browse';
+
+  // Reset states
+  document.getElementById('verifyForm').style.display = 'block';
+  document.getElementById('verifyLoading').style.display = 'none';
+  document.getElementById('verifyResult').style.display = 'none';
+
+  openModal('verifyModal');
+}
+
+function handleFileSelect(input) {
+  if (input.files[0]) {
+    const zone = document.getElementById('uploadZone');
+    zone.classList.add('has-file');
+    document.getElementById('uploadText').innerHTML = `<strong>✓ ${input.files[0].name}</strong><br>click to change`;
+  }
+}
+
+async function submitVerification() {
+  const note = document.getElementById('proofNote').value.trim();
+  const fileInput = document.getElementById('proofFile');
+  const file = fileInput.files[0];
+
+  if (!file && !note) return toast('Please upload an image or add a note', 'error');
+
+  // Show loading
+  document.getElementById('verifyForm').style.display = 'none';
+  document.getElementById('verifyLoading').style.display = 'block';
+
+  try {
+    const formData = new FormData();
+    if (file) formData.append('proof_image', file);
+    if (note) formData.append('proof_note', note);
+
+    const res = await fetch(`${API}/habits/${currentHabitId}/verify`, {
+      method: 'POST',
+      body: formData
+    });
+
+    const data = await res.json();
+
+    document.getElementById('verifyLoading').style.display = 'none';
+    document.getElementById('verifyResult').style.display = 'block';
+
+    if (!res.ok) {
+      document.getElementById('verifyResult').innerHTML = `
+        <div class="result-card failure">
+          <div class="result-icon">⚠️</div>
+          <div class="result-title">Error</div>
+          <div class="result-explanation">${data.error}</div>
+        </div>`;
+      return;
+    }
+
+    const isVerified = data.verified;
+
+    document.getElementById('verifyResult').innerHTML = `
+      <div class="result-card ${isVerified ? 'success' : 'failure'}">
+        <div class="result-icon">${isVerified ? '🏆' : '❌'}</div>
+        <div class="result-title">${isVerified ? 'Verified!' : 'Not Verified'}</div>
+        <div class="result-explanation">${data.explanation}</div>
+        ${isVerified ? `
+          <div class="xp-gained">+${data.xpEarned} XP</div>
+          <div class="streak-callout">🔥 ${data.newStreak} day streak!</div>
+        ` : ''}
+      </div>
+      <button class="btn btn-primary" style="margin-top:16px" onclick="closeModal('verifyModal')">Done</button>`;
+
+    if (isVerified) {
+      // Refresh user XP
+      currentUser.xp = data.userXp;
+      currentUser.level = data.userLevel;
+      updateXpWidget();
+      loadHabits();
+    }
+
+  } catch (e) {
+    document.getElementById('verifyLoading').style.display = 'none';
+    document.getElementById('verifyResult').style.display = 'block';
+    document.getElementById('verifyResult').innerHTML = `
+      <div class="result-card failure">
+        <div class="result-icon">🔌</div>
+        <div class="result-title">Connection Error</div>
+        <div class="result-explanation">Could not reach the server. Make sure it's running.</div>
+      </div>`;
+  }
+}
+
+// ─── UTILITIES ────────────────────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+function escHtml(str) {
+  const d = document.createElement('div');
+  d.appendChild(document.createTextNode(str));
+  return d.innerHTML;
+}
+
+function toast(msg, type = 'success') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  document.getElementById('toastContainer').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+// Close modals when clicking overlay
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('active');
+  });
+});
+</script>
+</body>
+</html>
