@@ -7,7 +7,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
-    /* ── RESET & BASE ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
@@ -33,18 +32,17 @@
       overflow-x: hidden;
     }
 
-    /* Grid noise texture overlay */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
-      background-image: radial-gradient(circle at 20% 50%, rgba(124,58,237,0.06) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 20%, rgba(255,107,53,0.06) 0%, transparent 50%);
+      background-image:
+        radial-gradient(circle at 20% 50%, rgba(124,58,237,0.06) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255,107,53,0.06) 0%, transparent 50%);
       pointer-events: none;
       z-index: 0;
     }
 
-    /* ── LAYOUT ── */
     .app { position: relative; z-index: 1; max-width: 900px; margin: 0 auto; padding: 24px 16px 80px; }
 
     /* ── HEADER ── */
@@ -57,11 +55,7 @@
       border-bottom: 1px solid var(--border);
     }
 
-    .logo {
-      font-size: 1.5rem;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-    }
+    .logo { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; }
     .logo span { color: var(--accent); }
 
     /* ── XP BAR ── */
@@ -86,12 +80,7 @@
       padding: 2px 8px;
     }
 
-    .xp-bar-wrap {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-      min-width: 120px;
-    }
+    .xp-bar-wrap { display: flex; flex-direction: column; gap: 3px; min-width: 120px; }
 
     .xp-label {
       font-family: 'Space Mono', monospace;
@@ -101,12 +90,7 @@
       justify-content: space-between;
     }
 
-    .xp-bar {
-      height: 6px;
-      background: var(--border);
-      border-radius: 3px;
-      overflow: hidden;
-    }
+    .xp-bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
 
     .xp-fill {
       height: 100%;
@@ -134,9 +118,9 @@
     .onboarding-card h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
     .onboarding-card p { color: var(--muted); margin-bottom: 32px; line-height: 1.6; }
 
-    /* ── INPUTS & FORMS ── */
+    /* ── FORMS ── */
     .form-group { margin-bottom: 16px; text-align: left; }
-    
+
     label {
       display: block;
       font-size: 0.8rem;
@@ -147,7 +131,7 @@
       margin-bottom: 6px;
     }
 
-    input, textarea, select {
+    input, textarea {
       width: 100%;
       background: var(--surface);
       border: 1px solid var(--border);
@@ -161,10 +145,7 @@
       resize: vertical;
     }
 
-    input:focus, textarea:focus {
-      border-color: var(--accent2);
-    }
-
+    input:focus, textarea:focus { border-color: var(--accent2); }
     textarea { min-height: 80px; }
 
     /* ── BUTTONS ── */
@@ -185,24 +166,10 @@
 
     .btn:hover { transform: translateY(-1px); }
     .btn:active { transform: translateY(0); }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
 
-    .btn-primary {
-      background: var(--accent);
-      color: #fff;
-      width: 100%;
-    }
-
-    .btn-secondary {
-      background: var(--border);
-      color: var(--text);
-    }
-
-    .btn-ghost {
-      background: transparent;
-      color: var(--muted);
-      border: 1px solid var(--border);
-    }
+    .btn-primary { background: var(--accent); color: #fff; width: 100%; }
+    .btn-secondary { background: var(--border); color: var(--text); }
 
     .btn-danger {
       background: transparent;
@@ -211,10 +178,9 @@
       font-size: 0.8rem;
       padding: 6px 12px;
     }
-
     .btn-danger:hover { background: rgba(239,68,68,0.1); }
 
-    /* ── DASHBOARD GRID ── */
+    /* ── DASHBOARD ── */
     .dashboard-top {
       display: grid;
       grid-template-columns: 1fr auto;
@@ -223,10 +189,7 @@
       margin-bottom: 24px;
     }
 
-    .section-title {
-      font-size: 1.4rem;
-      font-weight: 800;
-    }
+    .section-title { font-size: 1.4rem; font-weight: 800; }
 
     /* ── HABIT CARDS ── */
     .habits-grid {
@@ -241,7 +204,6 @@
       border-radius: 16px;
       padding: 20px;
       transition: border-color 0.2s, transform 0.2s;
-      cursor: default;
     }
 
     .habit-card:hover { border-color: var(--accent2); transform: translateY(-2px); }
@@ -254,11 +216,7 @@
       margin-bottom: 12px;
     }
 
-    .habit-name {
-      font-size: 1.05rem;
-      font-weight: 700;
-      line-height: 1.3;
-    }
+    .habit-name { font-size: 1.05rem; font-weight: 700; line-height: 1.3; }
 
     .done-badge {
       font-size: 0.7rem;
@@ -272,18 +230,9 @@
       white-space: nowrap;
     }
 
-    .habit-desc {
-      font-size: 0.85rem;
-      color: var(--muted);
-      margin-bottom: 16px;
-      line-height: 1.5;
-    }
+    .habit-desc { font-size: 0.85rem; color: var(--muted); margin-bottom: 16px; line-height: 1.5; }
 
-    .habit-stats {
-      display: flex;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
+    .habit-stats { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
 
     .stat-pill {
       display: flex;
@@ -300,10 +249,7 @@
     .stat-pill.streak { color: var(--accent); }
     .stat-pill.total { color: var(--accent2); }
 
-    .habit-actions {
-      display: flex;
-      gap: 8px;
-    }
+    .habit-actions { display: flex; gap: 8px; }
 
     .btn-verify {
       flex: 1;
@@ -319,15 +265,11 @@
       transition: transform 0.15s, opacity 0.15s;
     }
 
-    .btn-verify:hover { transform: translateY(-1px); opacity: 0.9; }
+    .btn-verify:hover:not(:disabled) { transform: translateY(-1px); opacity: 0.9; }
+    .btn-verify:disabled { opacity: 0.5; cursor: not-allowed; }
 
     /* ── EMPTY STATE ── */
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: var(--muted);
-    }
-
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); grid-column: 1 / -1; }
     .empty-state .emoji { font-size: 3rem; margin-bottom: 12px; }
     .empty-state h3 { font-size: 1.1rem; color: var(--text); margin-bottom: 8px; }
     .empty-state p { font-size: 0.9rem; margin-bottom: 24px; }
@@ -355,11 +297,13 @@
       width: 100%;
       max-width: 480px;
       animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+      max-height: 90vh;
+      overflow-y: auto;
     }
 
     @keyframes slideUp {
       from { transform: translateY(40px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+      to   { transform: translateY(0);    opacity: 1; }
     }
 
     .modal-header {
@@ -384,11 +328,12 @@
       align-items: center;
       justify-content: center;
       transition: background 0.2s;
+      flex-shrink: 0;
     }
 
     .close-btn:hover { background: var(--surface); color: var(--text); }
 
-    /* ── IMAGE UPLOAD ── */
+    /* ── UPLOAD ZONE ── */
     .upload-zone {
       border: 2px dashed var(--border);
       border-radius: var(--radius);
@@ -401,19 +346,13 @@
 
     .upload-zone:hover { border-color: var(--accent2); background: rgba(124,58,237,0.05); }
     .upload-zone.has-file { border-color: var(--green); background: rgba(34,197,94,0.05); }
-
     .upload-zone input { display: none; }
     .upload-zone-icon { font-size: 2rem; margin-bottom: 8px; }
     .upload-zone-text { font-size: 0.85rem; color: var(--muted); }
     .upload-zone-text strong { color: var(--text); }
 
     /* ── RESULT CARD ── */
-    .result-card {
-      border-radius: 16px;
-      padding: 24px;
-      text-align: center;
-    }
-
+    .result-card { border-radius: 16px; padding: 24px; text-align: center; }
     .result-card.success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); }
     .result-card.failure { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); }
 
@@ -437,14 +376,12 @@
       color: var(--xp);
     }
 
-    .streak-callout {
-      margin-top: 12px;
-      font-size: 0.85rem;
-      color: var(--accent);
-      font-weight: 700;
-    }
+    .streak-callout { margin-top: 12px; font-size: 0.85rem; color: var(--accent); font-weight: 700; }
 
-    /* ── LOADING SPINNER ── */
+    .result-actions { display: flex; gap: 10px; margin-top: 16px; }
+    .result-actions .btn { flex: 1; }
+
+    /* ── SPINNER ── */
     .spinner {
       width: 28px;
       height: 28px;
@@ -457,18 +394,10 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .verifying-state {
-      text-align: center;
-      padding: 32px;
-    }
+    .verifying-state { text-align: center; padding: 32px; }
+    .verifying-state p { margin-top: 12px; color: var(--muted); font-size: 0.9rem; }
 
-    .verifying-state p {
-      margin-top: 12px;
-      color: var(--muted);
-      font-size: 0.9rem;
-    }
-
-    /* ── PROOF INSTRUCTIONS ── */
+    /* ── PROOF HINT ── */
     .proof-hint {
       background: rgba(124,58,237,0.1);
       border: 1px solid rgba(124,58,237,0.25);
@@ -503,15 +432,14 @@
       max-width: 320px;
     }
 
-    .toast.error { border-color: rgba(239,68,68,0.4); color: #fca5a5; }
-    .toast.success { border-color: rgba(34,197,94,0.4); color: #86efac; }
+    .toast.error  { border-color: rgba(239,68,68,0.4);  color: #fca5a5; }
+    .toast.success{ border-color: rgba(34,197,94,0.4);  color: #86efac; }
 
     @keyframes toastIn {
       from { transform: translateX(40px); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
+      to   { transform: translateX(0);    opacity: 1; }
     }
 
-    /* ── RESPONSIVE ── */
     @media (max-width: 600px) {
       .header { flex-direction: column; gap: 16px; align-items: flex-start; }
       .habits-grid { grid-template-columns: 1fr; }
@@ -524,7 +452,6 @@
 
 <div class="app">
 
-  <!-- HEADER -->
   <header class="header">
     <div class="logo">Habit<span>Forge</span></div>
     <div class="xp-widget" id="xpWidget" style="display:none">
@@ -541,7 +468,7 @@
     </div>
   </header>
 
-  <!-- ── SCREEN: ONBOARDING ── -->
+  <!-- ONBOARDING -->
   <div id="screenOnboard" class="screen active">
     <div class="onboarding-card">
       <div class="emoji">⚒️</div>
@@ -549,30 +476,28 @@
       <p>AI verifies your progress with real proof — no more checkbox cheating.</p>
       <div class="form-group">
         <label>Your Name</label>
-        <input type="text" id="onboardName" placeholder="Enter your name..." />
+        <input type="text" id="onboardName" placeholder="Enter your name..." maxlength="100" />
       </div>
       <div class="form-group">
         <label>Email</label>
-        <input type="email" id="onboardEmail" placeholder="you@example.com" />
+        <input type="email" id="onboardEmail" placeholder="you@example.com" maxlength="200" />
       </div>
-      <button class="btn btn-primary" onclick="createUser()">🚀 Start Tracking</button>
+      <button class="btn btn-primary" id="startBtn" onclick="createUser()">🚀 Start Tracking</button>
     </div>
   </div>
 
-  <!-- ── SCREEN: DASHBOARD ── -->
+  <!-- DASHBOARD -->
   <div id="screenDash" class="screen">
     <div class="dashboard-top">
       <div class="section-title">Your Habits</div>
       <button class="btn btn-secondary" onclick="openAddModal()">+ New Habit</button>
     </div>
-    <div id="habitsGrid" class="habits-grid">
-      <!-- habits injected here -->
-    </div>
+    <div id="habitsGrid" class="habits-grid"></div>
   </div>
 
 </div>
 
-<!-- ── MODAL: ADD HABIT ── -->
+<!-- MODAL: ADD HABIT -->
 <div class="modal-overlay" id="addModal">
   <div class="modal">
     <div class="modal-header">
@@ -581,88 +506,97 @@
     </div>
     <div class="form-group">
       <label>Habit Name</label>
-      <input type="text" id="habitName" placeholder="e.g. Morning Run" />
+      <input type="text" id="habitName" placeholder="e.g. Morning Run" maxlength="100" />
     </div>
     <div class="form-group">
       <label>Description (optional)</label>
-      <textarea id="habitDesc" placeholder="e.g. Run at least 1km every morning"></textarea>
+      <textarea id="habitDesc" placeholder="e.g. Run at least 1km every morning" maxlength="500"></textarea>
     </div>
     <div class="form-group">
       <label>Proof Instructions</label>
-      <textarea id="habitProof" placeholder="e.g. Upload a screenshot of your fitness app showing today's run, or a photo of your running shoes outside"></textarea>
+      <textarea id="habitProof" placeholder="e.g. Upload a screenshot of your fitness app showing today's run" maxlength="1000"></textarea>
     </div>
-    <button class="btn btn-primary" onclick="addHabit()">Create Habit</button>
+    <button class="btn btn-primary" id="addHabitBtn" onclick="addHabit()">Create Habit</button>
   </div>
 </div>
 
-<!-- ── MODAL: VERIFY HABIT ── -->
+<!-- MODAL: VERIFY HABIT -->
 <div class="modal-overlay" id="verifyModal">
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title" id="verifyModalTitle">Verify Habit</div>
-      <button class="close-btn" onclick="closeModal('verifyModal')">✕</button>
+      <!-- Close button is hidden while verifying so you can't abandon mid-request -->
+      <button class="close-btn" id="verifyCloseBtn" onclick="closeModal('verifyModal')">✕</button>
     </div>
 
-    <!-- Proof form state -->
+    <!-- Form state -->
     <div id="verifyForm">
       <div class="proof-hint">
         <strong>📋 What counts as proof:</strong>
         <span id="proofInstructions"></span>
       </div>
-
-      <!-- Image upload -->
       <div class="upload-zone" id="uploadZone" onclick="document.getElementById('proofFile').click()">
-        <input type="file" id="proofFile" accept="image/*" onchange="handleFileSelect(this)" />
+        <input type="file" id="proofFile" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" onchange="handleFileSelect(this)" />
         <div class="upload-zone-icon">📷</div>
         <div class="upload-zone-text" id="uploadText">
           <strong>Upload proof image</strong><br>click to browse
         </div>
       </div>
-
       <div class="form-group">
         <label>Or add a note</label>
-        <textarea id="proofNote" placeholder="Describe what you did..."></textarea>
+        <textarea id="proofNote" placeholder="Describe what you did..." maxlength="2000"></textarea>
       </div>
-
-      <button class="btn btn-primary" onclick="submitVerification()">🤖 Verify with AI</button>
+      <button class="btn btn-primary" id="verifyBtn" onclick="submitVerification()">🤖 Verify with AI</button>
     </div>
 
-    <!-- Verifying state -->
+    <!-- Loading state -->
     <div id="verifyLoading" style="display:none">
       <div class="verifying-state">
         <div class="spinner"></div>
-        <p>AI is reviewing your proof...</p>
+        <p>AI is reviewing your proof…</p>
       </div>
     </div>
 
     <!-- Result state -->
-    <div id="verifyResult" style="display:none">
-      <!-- injected -->
-    </div>
+    <div id="verifyResult" style="display:none"></div>
   </div>
 </div>
 
-<!-- Toast container -->
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
-// ─── STATE ─────────────────────────────────────────────────────────────────
+// ─── STATE ────────────────────────────────────────────────────────────────────
 const API = 'http://localhost:3001/api';
 let currentUser = null;
 let currentHabitId = null;
 let habits = [];
+let isVerifying = false; // prevents double-submit
 
-// ─── INIT ──────────────────────────────────────────────────────────────────
+// Browser's timezone offset in minutes (e.g. -360 for CST)
+// We send this to the server so "today" is calculated in the user's local time
+const TZ_OFFSET = new Date().getTimezoneOffset();
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
 window.onload = () => {
   const savedId = localStorage.getItem('userId');
   if (savedId) loadUser(savedId);
 };
 
-// ─── USER ──────────────────────────────────────────────────────────────────
+// ─── USER ─────────────────────────────────────────────────────────────────────
 async function createUser() {
-  const name = document.getElementById('onboardName').value.trim();
+  const name  = document.getElementById('onboardName').value.trim();
   const email = document.getElementById('onboardEmail').value.trim();
+
   if (!name || !email) return toast('Please fill in both fields', 'error');
+
+  // Basic email format check before even hitting the server
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return toast('Please enter a valid email address', 'error');
+  }
+
+  const btn = document.getElementById('startBtn');
+  btn.disabled = true;
+  btn.textContent = 'Starting…';
 
   try {
     const res = await fetch(`${API}/users`, {
@@ -671,12 +605,18 @@ async function createUser() {
       body: JSON.stringify({ name, email })
     });
     const data = await res.json();
-    if (!res.ok) return toast(data.error, 'error');
+    if (!res.ok) {
+      btn.disabled = false;
+      btn.textContent = '🚀 Start Tracking';
+      return toast(data.error || 'Could not create account', 'error');
+    }
 
     localStorage.setItem('userId', data.id);
     await loadUser(data.id);
-    toast(`Welcome, ${data.name}! 🎉`, 'success');
+    toast(data.alreadyExisted ? `Welcome back, ${data.name}!` : `Welcome, ${data.name}! 🎉`, 'success');
   } catch (e) {
+    btn.disabled = false;
+    btn.textContent = '🚀 Start Tracking';
     toast('Cannot connect to server. Is it running?', 'error');
   }
 }
@@ -684,7 +624,10 @@ async function createUser() {
 async function loadUser(id) {
   try {
     const res = await fetch(`${API}/users/${id}`);
-    if (!res.ok) { localStorage.removeItem('userId'); return; }
+    if (!res.ok) {
+      localStorage.removeItem('userId');
+      return;
+    }
     currentUser = await res.json();
     showDashboard();
     updateXpWidget();
@@ -694,28 +637,42 @@ async function loadUser(id) {
   }
 }
 
-function updateXpWidget() {
+function updateXpWidget(overrides = {}) {
   if (!currentUser) return;
-  const widget = document.getElementById('xpWidget');
-  widget.style.display = 'flex';
-  document.getElementById('levelBadge').textContent = `LVL ${currentUser.level}`;
-  document.getElementById('xpText').textContent = `${currentUser.xp} XP`;
-  const pct = Math.min(100, ((currentUser.xp % 50) / 50) * 100);
+
+  // Allow passing fresh values from a verification response without re-fetching
+  const xp       = overrides.xp       ?? currentUser.xp;
+  const level     = overrides.level    ?? currentUser.level;
+  const pct       = overrides.pct      ?? currentUser.xpProgressPercent ?? 0;
+
+  document.getElementById('xpWidget').style.display = 'flex';
+  document.getElementById('levelBadge').textContent = `LVL ${level}`;
+  document.getElementById('xpText').textContent = `${xp} XP`;
   document.getElementById('xpFill').style.width = pct + '%';
 }
 
-// ─── SCREENS ──────────────────────────────────────────────────────────────
+// ─── SCREENS ──────────────────────────────────────────────────────────────────
 function showDashboard() {
   document.getElementById('screenOnboard').classList.remove('active');
   document.getElementById('screenDash').classList.add('active');
 }
 
-// ─── HABITS ──────────────────────────────────────────────────────────────
+// ─── HABITS ───────────────────────────────────────────────────────────────────
 async function loadHabits() {
   if (!currentUser) return;
-  const res = await fetch(`${API}/users/${currentUser.id}/habits`);
-  habits = await res.json();
-  renderHabits();
+  try {
+    const res = await fetch(`${API}/users/${currentUser.id}/habits?tzOffset=${TZ_OFFSET}`);
+    if (!res.ok) throw new Error('Server error');
+    habits = await res.json();
+    renderHabits();
+  } catch (e) {
+    document.getElementById('habitsGrid').innerHTML = `
+      <div class="empty-state">
+        <div class="emoji">⚠️</div>
+        <h3>Could not load habits</h3>
+        <p>Make sure the server is running, then <a href="javascript:loadHabits()" style="color:var(--accent)">try again</a>.</p>
+      </div>`;
+  }
 }
 
 function renderHabits() {
@@ -723,7 +680,7 @@ function renderHabits() {
 
   if (habits.length === 0) {
     grid.innerHTML = `
-      <div class="empty-state" style="grid-column:1/-1">
+      <div class="empty-state">
         <div class="emoji">🌱</div>
         <h3>No habits yet</h3>
         <p>Create your first habit to get started</p>
@@ -745,29 +702,36 @@ function renderHabits() {
       </div>
       <div class="habit-actions">
         ${h.completedToday
-          ? `<button class="btn-verify" style="opacity:0.5;cursor:default">✓ Verified Today</button>`
+          ? `<button class="btn-verify" disabled>✓ Verified Today</button>`
           : `<button class="btn-verify" onclick="openVerifyModal(${h.id})">🤖 Submit Proof</button>`
         }
-        <button class="btn btn-danger" onclick="deleteHabit(${h.id})">🗑</button>
+        <button class="btn btn-danger" onclick="deleteHabit(${h.id}, ${currentUser.id})">🗑</button>
       </div>
     </div>
   `).join('');
 }
 
-// ─── ADD HABIT ────────────────────────────────────────────────────────────
+// ─── ADD HABIT ────────────────────────────────────────────────────────────────
 function openAddModal() {
   document.getElementById('habitName').value = '';
   document.getElementById('habitDesc').value = '';
   document.getElementById('habitProof').value = '';
+  document.getElementById('addHabitBtn').disabled = false;
+  document.getElementById('addHabitBtn').textContent = 'Create Habit';
   openModal('addModal');
 }
 
 async function addHabit() {
-  const name = document.getElementById('habitName').value.trim();
-  const description = document.getElementById('habitDesc').value.trim();
+  const name              = document.getElementById('habitName').value.trim();
+  const description       = document.getElementById('habitDesc').value.trim();
   const proof_instructions = document.getElementById('habitProof').value.trim();
 
-  if (!name || !proof_instructions) return toast('Name and proof instructions are required', 'error');
+  if (!name)              return toast('Habit name is required', 'error');
+  if (!proof_instructions) return toast('Proof instructions are required', 'error');
+
+  const btn = document.getElementById('addHabitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Creating…';
 
   try {
     const res = await fetch(`${API}/users/${currentUser.id}/habits`, {
@@ -776,37 +740,51 @@ async function addHabit() {
       body: JSON.stringify({ name, description, proof_instructions })
     });
     const data = await res.json();
-    if (!res.ok) return toast(data.error, 'error');
+
+    btn.disabled = false;
+    btn.textContent = 'Create Habit';
+
+    if (!res.ok) return toast(data.error || 'Failed to create habit', 'error');
 
     closeModal('addModal');
     toast('Habit created! 🎯', 'success');
     loadHabits();
   } catch (e) {
-    toast('Failed to create habit', 'error');
+    btn.disabled = false;
+    btn.textContent = 'Create Habit';
+    toast('Failed to create habit — is the server running?', 'error');
   }
 }
 
-async function deleteHabit(id) {
+async function deleteHabit(id, userId) {
   if (!confirm('Delete this habit and all its history?')) return;
-  await fetch(`${API}/habits/${id}`, { method: 'DELETE' });
-  toast('Habit deleted', 'success');
-  loadHabits();
+  try {
+    await fetch(`${API}/habits/${id}?userId=${userId}`, { method: 'DELETE' });
+    toast('Habit deleted', 'success');
+    loadHabits();
+  } catch (e) {
+    toast('Could not delete habit', 'error');
+  }
 }
 
-// ─── VERIFY HABIT ─────────────────────────────────────────────────────────
+// ─── VERIFY HABIT ─────────────────────────────────────────────────────────────
 function openVerifyModal(habitId) {
   const habit = habits.find(h => h.id === habitId);
   if (!habit) return;
 
   currentHabitId = habitId;
-  document.getElementById('verifyModalTitle').textContent = `Verify: ${habit.name}`;
+  isVerifying = false;
+
+  document.getElementById('verifyModalTitle').textContent = `Verify: ${escHtml(habit.name)}`;
   document.getElementById('proofInstructions').textContent = habit.proof_instructions;
   document.getElementById('proofNote').value = '';
   document.getElementById('proofFile').value = '';
   document.getElementById('uploadZone').classList.remove('has-file');
   document.getElementById('uploadText').innerHTML = '<strong>Upload proof image</strong><br>click to browse';
+  document.getElementById('verifyBtn').disabled = false;
+  document.getElementById('verifyBtn').textContent = '🤖 Verify with AI';
+  document.getElementById('verifyCloseBtn').style.display = 'flex';
 
-  // Reset states
   document.getElementById('verifyForm').style.display = 'block';
   document.getElementById('verifyLoading').style.display = 'none';
   document.getElementById('verifyResult').style.display = 'none';
@@ -816,20 +794,28 @@ function openVerifyModal(habitId) {
 
 function handleFileSelect(input) {
   if (input.files[0]) {
-    const zone = document.getElementById('uploadZone');
-    zone.classList.add('has-file');
-    document.getElementById('uploadText').innerHTML = `<strong>✓ ${input.files[0].name}</strong><br>click to change`;
+    document.getElementById('uploadZone').classList.add('has-file');
+    document.getElementById('uploadText').innerHTML =
+      `<strong>✓ ${escHtml(input.files[0].name)}</strong><br>click to change`;
   }
 }
 
 async function submitVerification() {
+  // Prevent double-submit
+  if (isVerifying) return;
+
   const note = document.getElementById('proofNote').value.trim();
-  const fileInput = document.getElementById('proofFile');
-  const file = fileInput.files[0];
+  const file = document.getElementById('proofFile').files[0];
 
   if (!file && !note) return toast('Please upload an image or add a note', 'error');
 
-  // Show loading
+  isVerifying = true;
+
+  // Disable verify button and hide close button while in-flight
+  document.getElementById('verifyBtn').disabled = true;
+  document.getElementById('verifyCloseBtn').style.display = 'none';
+
+  // Switch to loading view
   document.getElementById('verifyForm').style.display = 'none';
   document.getElementById('verifyLoading').style.display = 'block';
 
@@ -837,6 +823,7 @@ async function submitVerification() {
     const formData = new FormData();
     if (file) formData.append('proof_image', file);
     if (note) formData.append('proof_note', note);
+    formData.append('tzOffset', TZ_OFFSET);
 
     const res = await fetch(`${API}/habits/${currentHabitId}/verify`, {
       method: 'POST',
@@ -847,58 +834,90 @@ async function submitVerification() {
 
     document.getElementById('verifyLoading').style.display = 'none';
     document.getElementById('verifyResult').style.display = 'block';
+    document.getElementById('verifyCloseBtn').style.display = 'flex';
+    isVerifying = false;
 
     if (!res.ok) {
       document.getElementById('verifyResult').innerHTML = `
         <div class="result-card failure">
           <div class="result-icon">⚠️</div>
           <div class="result-title">Error</div>
-          <div class="result-explanation">${data.error}</div>
+          <div class="result-explanation">${escHtml(data.error || 'Something went wrong')}</div>
+        </div>
+        <div class="result-actions">
+          <button class="btn btn-secondary" onclick="resetVerifyModal()">Try Again</button>
+          <button class="btn btn-primary" onclick="closeModal('verifyModal')">Close</button>
         </div>`;
       return;
     }
 
-    const isVerified = data.verified;
+    if (data.verified) {
+      // Update local user state with fresh XP from server
+      currentUser.xp    = data.userXp;
+      currentUser.level = data.userLevel;
+      updateXpWidget({ xp: data.userXp, level: data.userLevel, pct: data.xpProgressPercent });
+      loadHabits();
+    }
 
     document.getElementById('verifyResult').innerHTML = `
-      <div class="result-card ${isVerified ? 'success' : 'failure'}">
-        <div class="result-icon">${isVerified ? '🏆' : '❌'}</div>
-        <div class="result-title">${isVerified ? 'Verified!' : 'Not Verified'}</div>
-        <div class="result-explanation">${data.explanation}</div>
-        ${isVerified ? `
+      <div class="result-card ${data.verified ? 'success' : 'failure'}">
+        <div class="result-icon">${data.verified ? '🏆' : '❌'}</div>
+        <div class="result-title">${data.verified ? 'Verified!' : 'Not Verified'}</div>
+        <div class="result-explanation">${escHtml(data.explanation)}</div>
+        ${data.verified ? `
           <div class="xp-gained">+${data.xpEarned} XP</div>
           <div class="streak-callout">🔥 ${data.newStreak} day streak!</div>
         ` : ''}
       </div>
-      <button class="btn btn-primary" style="margin-top:16px" onclick="closeModal('verifyModal')">Done</button>`;
-
-    if (isVerified) {
-      // Refresh user XP
-      currentUser.xp = data.userXp;
-      currentUser.level = data.userLevel;
-      updateXpWidget();
-      loadHabits();
-    }
+      <div class="result-actions">
+        ${!data.verified ? `<button class="btn btn-secondary" onclick="resetVerifyModal()">Try Again</button>` : ''}
+        <button class="btn btn-primary" onclick="closeModal('verifyModal')">Done</button>
+      </div>`;
 
   } catch (e) {
+    isVerifying = false;
     document.getElementById('verifyLoading').style.display = 'none';
     document.getElementById('verifyResult').style.display = 'block';
+    document.getElementById('verifyCloseBtn').style.display = 'flex';
     document.getElementById('verifyResult').innerHTML = `
       <div class="result-card failure">
         <div class="result-icon">🔌</div>
         <div class="result-title">Connection Error</div>
         <div class="result-explanation">Could not reach the server. Make sure it's running.</div>
+      </div>
+      <div class="result-actions">
+        <button class="btn btn-secondary" onclick="resetVerifyModal()">Try Again</button>
+        <button class="btn btn-primary" onclick="closeModal('verifyModal')">Close</button>
       </div>`;
   }
 }
 
-// ─── UTILITIES ────────────────────────────────────────────────────────────
-function openModal(id) { document.getElementById(id).classList.add('active'); }
-function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+// Reset verify modal back to the form so user can try again
+function resetVerifyModal() {
+  isVerifying = false;
+  document.getElementById('verifyBtn').disabled = false;
+  document.getElementById('verifyBtn').textContent = '🤖 Verify with AI';
+  document.getElementById('proofNote').value = '';
+  document.getElementById('proofFile').value = '';
+  document.getElementById('uploadZone').classList.remove('has-file');
+  document.getElementById('uploadText').innerHTML = '<strong>Upload proof image</strong><br>click to browse';
+
+  document.getElementById('verifyForm').style.display = 'block';
+  document.getElementById('verifyLoading').style.display = 'none';
+  document.getElementById('verifyResult').style.display = 'none';
+}
+
+// ─── UTILITIES ────────────────────────────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add('active'); }
+function closeModal(id) {
+  // Don't allow closing verify modal while a request is in flight
+  if (id === 'verifyModal' && isVerifying) return;
+  document.getElementById(id).classList.remove('active');
+}
 
 function escHtml(str) {
   const d = document.createElement('div');
-  d.appendChild(document.createTextNode(str));
+  d.appendChild(document.createTextNode(String(str || '')));
   return d.innerHTML;
 }
 
@@ -910,10 +929,13 @@ function toast(msg, type = 'success') {
   setTimeout(() => el.remove(), 3500);
 }
 
-// Close modals when clicking overlay
+// Overlay click to close — but only if not mid-verification
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', e => {
-    if (e.target === overlay) overlay.classList.remove('active');
+    if (e.target !== overlay) return;
+    const id = overlay.id;
+    if (id === 'verifyModal' && isVerifying) return;
+    overlay.classList.remove('active');
   });
 });
 </script>

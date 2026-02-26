@@ -1,6 +1,4 @@
 // backend/server.js
-// The main server file - this runs the whole backend
-
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -13,23 +11,17 @@ const { verifyHabit } = require('./aiVerifier');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// ─── Middleware ──────────────────────────────────────────────────────────────
+// ─── Middleware ───────────────────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
-
-// Serve uploaded images as static files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// ─── File Upload Setup ───────────────────────────────────────────────────────
-// Create uploads folder if it doesn't exist
-if (!fs.existsSync('./uploads')) {
-  fs.mkdirSync('./uploads');
-}
+// ─── File Upload Setup ────────────────────────────────────────────────────────
+if (!fs.existsSync('./uploads')) fs.mkdirSync('./uploads');
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, './uploads/'),
   filename: (req, file, cb) => {
-    // Give each file a unique name so they don't overwrite each other
     const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${path.extname(file.originalname)}`;
     cb(null, uniqueName);
   }
@@ -37,63 +29,146 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB max
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20MB — we compress it ourselves in aiVerifier
   fileFilter: (req, file, cb) => {
-    const allowed = /jpeg|jpg|png|gif|webp/;
-    const valid = allowed.test(path.extname(file.originalname).toLowerCase()) && allowed.test(file.mimetype);
-    valid ? cb(null, true) : cb(new Error('Only image files are allowed'));
+    const allowedExts = /jpeg|jpg|png|gif|webp/;
+    const allowedMime = /image\/(jpeg|jpg|png|gif|webp)/;
+    const extOk = allowedExts.test(path.extname(file.originalname).toLowerCase());
+    const mimeOk = allowedMime.test(file.mimetype);
+    if (extOk && mimeOk) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed (JPG, PNG, GIF, WEBP)'));
+    }
   }
 });
 
-// ─── Helper Functions ────────────────────────────────────────────────────────
+// Wrapper that catches multer errors and returns clean JSON instead of crashing
+function uploadWithErrorHandling(req, res, next) {
+  upload.single('proof_image')(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ error: 'Image is too large. Maximum size is 20MB.' });
+      }
+      return res.status(400).json({ error: `Upload error: ${err.message}` });
+    }
+    if (err) {
+      return res.status(400).json({ error: err.message });
+    }
+    next();
+  });
+}
 
-// Calculate what level a user should be at based on XP
+// ─── Helper Functions ─────────────────────────────────────────────────────────
+
 function calculateLevel(xp) {
-  // Each level requires more XP: Level 2 = 100xp, Level 3 = 250xp, etc.
   return Math.floor(1 + Math.sqrt(xp / 50));
 }
 
-// Get today's date as a string like "2024-01-15"
-function todayString() {
-  return new Date().toISOString().split('T')[0];
+// XP needed to reach the NEXT level from current level
+function xpForLevel(level) {
+  return Math.pow(level, 2) * 50;
 }
 
-// ─── USER ROUTES ─────────────────────────────────────────────────────────────
+// How far through the current level the user is, as a 0-100 percentage
+function xpProgressPercent(xp) {
+  const level = calculateLevel(xp);
+  const currentLevelXp = xpForLevel(level - 1);   // XP at start of this level
+  const nextLevelXp = xpForLevel(level);           // XP needed for next level
+  const progressInLevel = xp - currentLevelXp;
+  const levelRange = nextLevelXp - currentLevelXp;
+  return Math.min(100, Math.round((progressInLevel / levelRange) * 100));
+}
 
-// Create a new user
+// Get today's date in the USER's local timezone using the offset sent from the browser.
+// Falls back to UTC if no offset provided.
+// offset is in minutes (e.g. -360 for CST which is UTC-6)
+function todayString(timezoneOffsetMinutes) {
+  const now = new Date();
+  if (timezoneOffsetMinutes !== undefined && timezoneOffsetMinutes !== null) {
+    // JS getTimezoneOffset() returns the OPPOSITE sign of UTC offset, so we subtract
+    const localTime = new Date(now.getTime() - (timezoneOffsetMinutes * 60 * 1000));
+    return localTime.toISOString().split('T')[0];
+  }
+  return now.toISOString().split('T')[0];
+}
+
+function yesterdayString(timezoneOffsetMinutes) {
+  const now = new Date();
+  const adjusted = new Date(now.getTime() - (timezoneOffsetMinutes * 60 * 1000));
+  adjusted.setUTCDate(adjusted.getUTCDate() - 1);
+  return adjusted.toISOString().split('T')[0];
+}
+
+// Delete an uploaded file safely (won't crash if file doesn't exist)
+function cleanupFile(filePath) {
+  if (!filePath) return;
+  fs.unlink(filePath, (err) => {
+    if (err && err.code !== 'ENOENT') {
+      console.error('Failed to delete file:', filePath, err.message);
+    }
+  });
+}
+
+// Input length limits to prevent abuse
+const LIMITS = {
+  name: 100,
+  description: 500,
+  proof_instructions: 1000,
+  proof_note: 2000,
+  email: 200
+};
+
+function truncate(str, max) {
+  if (!str) return str;
+  return String(str).slice(0, max);
+}
+
+// ─── USER ROUTES ──────────────────────────────────────────────────────────────
+
 app.post('/api/users', (req, res) => {
-  const { name, email } = req.body;
+  let { name, email } = req.body;
+
+  name = truncate(name, LIMITS.name)?.trim();
+  email = truncate(email, LIMITS.email)?.trim().toLowerCase();
 
   if (!name || !email) {
     return res.status(400).json({ error: 'Name and email are required' });
   }
 
+  // Basic email format check
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return res.status(400).json({ error: 'Please enter a valid email address' });
+  }
+
   try {
-    const stmt = db.prepare('INSERT INTO users (name, email) VALUES (?, ?)');
-    const result = stmt.run(name, email);
+    const result = db.prepare('INSERT INTO users (name, email) VALUES (?, ?)').run(name, email);
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(result.lastInsertRowid);
     res.status(201).json(user);
   } catch (error) {
     if (error.message.includes('UNIQUE constraint')) {
-      return res.status(400).json({ error: 'Email already exists' });
+      // If email exists, just log them in instead of erroring
+      const existing = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+      if (existing) return res.status(200).json({ ...existing, alreadyExisted: true });
     }
+    console.error('Create user error:', error);
     res.status(500).json({ error: 'Could not create user' });
   }
 });
 
-// Get a user by ID (with their stats)
 app.get('/api/users/:id', (req, res) => {
   const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
   if (!user) return res.status(404).json({ error: 'User not found' });
 
-  // Add extra stats
   const habitCount = db.prepare('SELECT COUNT(*) as count FROM habits WHERE user_id = ?').get(req.params.id);
   const totalCompletions = db.prepare('SELECT SUM(total_completions) as total FROM habits WHERE user_id = ?').get(req.params.id);
+  const level = calculateLevel(user.xp);
 
   res.json({
     ...user,
-    level: calculateLevel(user.xp),
-    xpForNextLevel: Math.pow(calculateLevel(user.xp), 2) * 50,
+    level,
+    xpProgressPercent: xpProgressPercent(user.xp),
+    xpForNextLevel: xpForLevel(level),
     habitCount: habitCount.count,
     totalCompletions: totalCompletions.total || 0
   });
@@ -101,91 +176,111 @@ app.get('/api/users/:id', (req, res) => {
 
 // ─── HABIT ROUTES ─────────────────────────────────────────────────────────────
 
-// Get all habits for a user
 app.get('/api/users/:userId/habits', (req, res) => {
-  const habits = db.prepare('SELECT * FROM habits WHERE user_id = ? ORDER BY created_at DESC').all(req.params.userId);
-  
-  const today = todayString();
-  
-  // For each habit, check if it was already completed today
-  const habitsWithStatus = habits.map(habit => {
-    const completedToday = db.prepare(
-      'SELECT id FROM completions WHERE habit_id = ? AND completed_date = ?'
-    ).get(habit.id, today);
+  try {
+    const habits = db.prepare('SELECT * FROM habits WHERE user_id = ? ORDER BY created_at DESC').all(req.params.userId);
+    const tzOffset = parseInt(req.query.tzOffset) || 0;
+    const today = todayString(tzOffset);
 
-    return {
-      ...habit,
-      completedToday: !!completedToday
-    };
-  });
+    const habitsWithStatus = habits.map(habit => {
+      // Only count VERIFIED completions as "done today" — rejected attempts don't block you
+      const completedToday = db.prepare(
+        'SELECT id FROM completions WHERE habit_id = ? AND completed_date = ? AND ai_verdict = ?'
+      ).get(habit.id, today, 'VERIFIED');
 
-  res.json(habitsWithStatus);
+      return { ...habit, completedToday: !!completedToday };
+    });
+
+    res.json(habitsWithStatus);
+  } catch (error) {
+    console.error('Load habits error:', error);
+    res.status(500).json({ error: 'Could not load habits' });
+  }
 });
 
-// Create a new habit
 app.post('/api/users/:userId/habits', (req, res) => {
-  const { name, description, proof_instructions } = req.body;
+  let { name, description, proof_instructions } = req.body;
   const userId = req.params.userId;
+
+  name = truncate(name, LIMITS.name)?.trim();
+  description = truncate(description, LIMITS.description)?.trim();
+  proof_instructions = truncate(proof_instructions, LIMITS.proof_instructions)?.trim();
 
   if (!name || !proof_instructions) {
     return res.status(400).json({ error: 'Name and proof instructions are required' });
   }
 
-  // Check user exists
   const user = db.prepare('SELECT id FROM users WHERE id = ?').get(userId);
   if (!user) return res.status(404).json({ error: 'User not found' });
 
-  const stmt = db.prepare(
-    'INSERT INTO habits (user_id, name, description, proof_instructions) VALUES (?, ?, ?, ?)'
-  );
-  const result = stmt.run(userId, name, description || '', proof_instructions);
-  const habit = db.prepare('SELECT * FROM habits WHERE id = ?').get(result.lastInsertRowid);
-  
-  res.status(201).json(habit);
+  try {
+    const result = db.prepare(
+      'INSERT INTO habits (user_id, name, description, proof_instructions) VALUES (?, ?, ?, ?)'
+    ).run(userId, name, description || '', proof_instructions);
+
+    const habit = db.prepare('SELECT * FROM habits WHERE id = ?').get(result.lastInsertRowid);
+    res.status(201).json(habit);
+  } catch (error) {
+    console.error('Create habit error:', error);
+    res.status(500).json({ error: 'Could not create habit' });
+  }
 });
 
-// Delete a habit
 app.delete('/api/habits/:id', (req, res) => {
-  const habit = db.prepare('SELECT id FROM habits WHERE id = ?').get(req.params.id);
+  const { userId } = req.query;
+  const habit = db.prepare('SELECT * FROM habits WHERE id = ?').get(req.params.id);
+
   if (!habit) return res.status(404).json({ error: 'Habit not found' });
 
-  db.prepare('DELETE FROM completions WHERE habit_id = ?').run(req.params.id);
-  db.prepare('DELETE FROM habits WHERE id = ?').run(req.params.id);
-  
-  res.json({ message: 'Habit deleted' });
+  // Make sure the habit belongs to the user making the request
+  if (userId && String(habit.user_id) !== String(userId)) {
+    return res.status(403).json({ error: 'Not allowed to delete this habit' });
+  }
+
+  try {
+    db.prepare('DELETE FROM completions WHERE habit_id = ?').run(req.params.id);
+    db.prepare('DELETE FROM habits WHERE id = ?').run(req.params.id);
+    res.json({ message: 'Habit deleted' });
+  } catch (error) {
+    console.error('Delete habit error:', error);
+    res.status(500).json({ error: 'Could not delete habit' });
+  }
 });
 
 // ─── VERIFICATION ROUTE ───────────────────────────────────────────────────────
 
-// Submit proof and get AI verification
-app.post('/api/habits/:habitId/verify', upload.single('proof_image'), async (req, res) => {
+app.post('/api/habits/:habitId/verify', uploadWithErrorHandling, async (req, res) => {
   const { habitId } = req.params;
-  const { proof_note } = req.body;
+  let { proof_note, tzOffset } = req.body;
   const imagePath = req.file ? req.file.path : null;
 
-  // Get the habit
+  proof_note = truncate(proof_note, LIMITS.proof_note)?.trim() || null;
+  const tzOffsetNum = parseInt(tzOffset) || 0;
+
   const habit = db.prepare('SELECT * FROM habits WHERE id = ?').get(habitId);
-  if (!habit) return res.status(404).json({ error: 'Habit not found' });
-
-  // Check if already completed today
-  const today = todayString();
-  const alreadyDone = db.prepare(
-    'SELECT id FROM completions WHERE habit_id = ? AND completed_date = ?'
-  ).get(habitId, today);
-
-  if (alreadyDone) {
-    return res.status(400).json({ error: 'Already completed today! Come back tomorrow.' });
+  if (!habit) {
+    cleanupFile(imagePath);
+    return res.status(404).json({ error: 'Habit not found' });
   }
 
-  // Need at least some proof
+  // Only VERIFIED completions block you — rejected attempts let you try again
+  const today = todayString(tzOffsetNum);
+  const alreadyVerified = db.prepare(
+    'SELECT id FROM completions WHERE habit_id = ? AND completed_date = ? AND ai_verdict = ?'
+  ).get(habitId, today, 'VERIFIED');
+
+  if (alreadyVerified) {
+    cleanupFile(imagePath);
+    return res.status(400).json({ error: 'Already verified today! Come back tomorrow.' });
+  }
+
   if (!imagePath && !proof_note) {
     return res.status(400).json({ error: 'Please provide an image or a note as proof' });
   }
 
   try {
     console.log(`🤖 Verifying habit: ${habit.name}`);
-    
-    // Ask Claude to verify
+
     const verification = await verifyHabit(
       habit.name,
       habit.description,
@@ -194,60 +289,55 @@ app.post('/api/habits/:habitId/verify', upload.single('proof_image'), async (req
       proof_note
     );
 
-    // Save the completion record
-    const stmt = db.prepare(`
+    // Always save the attempt — verified or not
+    db.prepare(`
       INSERT INTO completions (habit_id, user_id, completed_date, proof_image, proof_note, ai_verdict, ai_explanation, xp_earned)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-    
-    stmt.run(
+    `).run(
       habitId,
       habit.user_id,
       today,
       imagePath,
-      proof_note || null,
+      proof_note,
       verification.verified ? 'VERIFIED' : 'REJECTED',
       verification.explanation,
       verification.xpEarned
     );
 
-    // If verified, update streak and XP
     if (verification.verified) {
-      // Check if streak should continue (completed yesterday?)
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayStr = yesterday.toISOString().split('T')[0];
-      
+      const yesterday = yesterdayString(tzOffsetNum);
       const completedYesterday = db.prepare(
         'SELECT id FROM completions WHERE habit_id = ? AND completed_date = ? AND ai_verdict = ?'
-      ).get(habitId, yesterdayStr, 'VERIFIED');
+      ).get(habitId, yesterday, 'VERIFIED');
 
       const newStreak = completedYesterday ? habit.streak + 1 : 1;
       const newLongestStreak = Math.max(newStreak, habit.longest_streak);
 
       db.prepare(`
-        UPDATE habits 
-        SET streak = ?, longest_streak = ?, total_completions = total_completions + 1
+        UPDATE habits SET streak = ?, longest_streak = ?, total_completions = total_completions + 1
         WHERE id = ?
       `).run(newStreak, newLongestStreak, habitId);
 
-      // Add XP to user
       db.prepare('UPDATE users SET xp = xp + ? WHERE id = ?').run(verification.xpEarned, habit.user_id);
-      
-      // Bonus XP for streaks
+
+      // Streak milestone bonuses
       let streakBonus = 0;
-      if (newStreak === 7) streakBonus = 100;
+      if (newStreak === 3)       streakBonus = 30;
+      else if (newStreak === 7)  streakBonus = 100;
+      else if (newStreak === 14) streakBonus = 150;
       else if (newStreak === 30) streakBonus = 500;
+      else if (newStreak === 100) streakBonus = 2000;
       else if (newStreak % 10 === 0) streakBonus = 50;
-      
+
       if (streakBonus > 0) {
         db.prepare('UPDATE users SET xp = xp + ? WHERE id = ?').run(streakBonus, habit.user_id);
+        console.log(`🎉 Streak milestone! ${newStreak} days — bonus ${streakBonus} XP`);
       }
     }
 
-    // Return the result
     const updatedHabit = db.prepare('SELECT * FROM habits WHERE id = ?').get(habitId);
     const user = db.prepare('SELECT xp FROM users WHERE id = ?').get(habit.user_id);
+    const level = calculateLevel(user.xp);
 
     res.json({
       verified: verification.verified,
@@ -255,31 +345,39 @@ app.post('/api/habits/:habitId/verify', upload.single('proof_image'), async (req
       xpEarned: verification.xpEarned,
       newStreak: updatedHabit.streak,
       userXp: user.xp,
-      userLevel: calculateLevel(user.xp)
+      userLevel: level,
+      xpProgressPercent: xpProgressPercent(user.xp)
     });
 
   } catch (error) {
-    console.error('Verification error:', error);
+    // Clean up the uploaded file if something went wrong
+    cleanupFile(imagePath);
+    console.error('Verification route error:', error);
     res.status(500).json({ error: 'Verification failed. Please try again.' });
   }
 });
 
 // ─── HISTORY ROUTE ────────────────────────────────────────────────────────────
 
-// Get completion history for a habit
 app.get('/api/habits/:habitId/history', (req, res) => {
-  const completions = db.prepare(`
-    SELECT * FROM completions 
-    WHERE habit_id = ? 
-    ORDER BY created_at DESC 
-    LIMIT 30
-  `).all(req.params.habitId);
-  
-  res.json(completions);
+  try {
+    const completions = db.prepare(`
+      SELECT * FROM completions WHERE habit_id = ? ORDER BY created_at DESC LIMIT 30
+    `).all(req.params.habitId);
+    res.json(completions);
+  } catch (error) {
+    console.error('History error:', error);
+    res.status(500).json({ error: 'Could not load history' });
+  }
 });
 
 // ─── START SERVER ─────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`📁 Uploads stored in ./uploads/`);
+
+  // Warn on startup if API key is missing
+  if (!process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_API_KEY === 'your_api_key_here') {
+    console.warn('⚠️  WARNING: ANTHROPIC_API_KEY is not set in your .env file!');
+  }
 });
