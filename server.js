@@ -174,6 +174,29 @@ app.get('/api/users/:id', (req, res) => {
   });
 });
 
+// Save onboarding profile answers
+app.put('/api/users/:id/profile', (req, res) => {
+  const { profile } = req.body;
+  if (!profile || typeof profile !== 'object') {
+    return res.status(400).json({ error: 'Profile data is required' });
+  }
+
+  const user = db.prepare('SELECT id FROM users WHERE id = ?').get(req.params.id);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  try {
+    db.prepare(`
+      UPDATE users SET profile = ?, onboarding_complete = 1 WHERE id = ?
+    `).run(JSON.stringify(profile), req.params.id);
+
+    const updated = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
+    res.json({ ...updated, profile: JSON.parse(updated.profile) });
+  } catch (error) {
+    console.error('Save profile error:', error);
+    res.status(500).json({ error: 'Could not save profile' });
+  }
+});
+
 // ─── HABIT ROUTES ─────────────────────────────────────────────────────────────
 
 app.get('/api/users/:userId/habits', (req, res) => {

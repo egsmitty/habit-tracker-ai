@@ -3,25 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>HabitForge — AI Habit Tracker</title>
+  <title>HabituAI — Level Up Your Life</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:       #0a0a0f;
-      --surface:  #13131f;
-      --card:     #1a1a2e;
-      --border:   #2a2a4a;
-      --accent:   #ff6b35;
-      --accent2:  #7c3aed;
-      --green:    #22c55e;
-      --red:      #ef4444;
-      --text:     #e8e8f0;
-      --muted:    #6b6b8a;
-      --xp:       #fbbf24;
-      --radius:   12px;
+      --bg:      #0a0a0f;
+      --surface: #13131f;
+      --card:    #1a1a2e;
+      --border:  #2a2a4a;
+      --accent:  #ff6b35;
+      --accent2: #7c3aed;
+      --green:   #22c55e;
+      --red:     #ef4444;
+      --text:    #e8e8f0;
+      --muted:   #6b6b8a;
+      --xp:      #fbbf24;
+      --radius:  12px;
     }
 
     body {
@@ -58,7 +58,7 @@
     .logo { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px; }
     .logo span { color: var(--accent); }
 
-    /* ── XP BAR ── */
+    /* ── XP WIDGET ── */
     .xp-widget {
       display: flex;
       align-items: center;
@@ -103,23 +103,52 @@
     .screen { display: none; }
     .screen.active { display: block; }
 
-    /* ── ONBOARDING ── */
-    .onboarding-card {
+    /* ── ONBOARDING WRAPPER ── */
+    .onboarding-wrap {
+      max-width: 520px;
+      margin: 40px auto;
+    }
+
+    /* ── STEP INDICATOR ── */
+    .step-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 32px;
+    }
+
+    .step-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: all 0.3s;
+    }
+
+    .step-dot.active { background: var(--accent); transform: scale(1.3); }
+    .step-dot.done { background: var(--green); }
+
+    /* ── ONBOARDING CARD ── */
+    .onboard-card {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 20px;
-      padding: 48px 40px;
-      text-align: center;
-      max-width: 440px;
-      margin: 60px auto;
+      padding: 40px 36px;
+      animation: slideUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
 
-    .onboarding-card .emoji { font-size: 3.5rem; margin-bottom: 20px; }
-    .onboarding-card h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; }
-    .onboarding-card p { color: var(--muted); margin-bottom: 32px; line-height: 1.6; }
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+
+    .onboard-emoji { font-size: 3rem; margin-bottom: 16px; }
+    .onboard-title { font-size: 1.7rem; font-weight: 800; margin-bottom: 8px; line-height: 1.2; }
+    .onboard-sub   { color: var(--muted); margin-bottom: 28px; line-height: 1.6; font-size: 0.95rem; }
 
     /* ── FORMS ── */
-    .form-group { margin-bottom: 16px; text-align: left; }
+    .form-group { margin-bottom: 16px; }
 
     label {
       display: block;
@@ -148,13 +177,82 @@
     input:focus, textarea:focus { border-color: var(--accent2); }
     textarea { min-height: 80px; }
 
+    /* ── CHOICE GRIDS ── */
+    .choice-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .choice-grid.single-col { grid-template-columns: 1fr; }
+    .choice-grid.three-col  { grid-template-columns: 1fr 1fr 1fr; }
+
+    .choice-btn {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 16px;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: left;
+    }
+
+    .choice-btn:hover { border-color: var(--accent2); background: rgba(124,58,237,0.08); }
+
+    .choice-btn.selected {
+      border-color: var(--accent);
+      background: rgba(255,107,53,0.12);
+      color: var(--accent);
+    }
+
+    .choice-btn .choice-emoji { font-size: 1.3rem; flex-shrink: 0; }
+
+    /* intensity buttons — big centered cards */
+    .intensity-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .intensity-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 20px 12px;
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      color: var(--text);
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+
+    .intensity-btn:hover { border-color: var(--accent2); }
+    .intensity-btn.selected { border-color: var(--accent); background: rgba(255,107,53,0.12); color: var(--accent); }
+    .intensity-btn .i-emoji { font-size: 2rem; }
+    .intensity-btn .i-label { font-size: 0.85rem; }
+    .intensity-btn .i-sub { font-size: 0.7rem; color: var(--muted); font-weight: 400; }
+
     /* ── BUTTONS ── */
     .btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      padding: 12px 24px;
+      padding: 14px 24px;
       border-radius: var(--radius);
       font-family: 'Syne', sans-serif;
       font-size: 0.95rem;
@@ -162,14 +260,16 @@
       cursor: pointer;
       border: none;
       transition: transform 0.15s, opacity 0.15s;
+      width: 100%;
     }
 
-    .btn:hover { transform: translateY(-1px); }
+    .btn:hover:not(:disabled) { transform: translateY(-1px); }
     .btn:active { transform: translateY(0); }
-    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
 
-    .btn-primary { background: var(--accent); color: #fff; width: 100%; }
+    .btn-primary  { background: var(--accent); color: #fff; }
     .btn-secondary { background: var(--border); color: var(--text); }
+    .btn-ghost    { background: transparent; color: var(--muted); border: 1px solid var(--border); }
 
     .btn-danger {
       background: transparent;
@@ -177,8 +277,13 @@
       border: 1px solid rgba(239,68,68,0.3);
       font-size: 0.8rem;
       padding: 6px 12px;
+      width: auto;
     }
+
     .btn-danger:hover { background: rgba(239,68,68,0.1); }
+
+    .btn-row { display: flex; gap: 10px; margin-top: 24px; }
+    .btn-row .btn { flex: 1; }
 
     /* ── DASHBOARD ── */
     .dashboard-top {
@@ -190,6 +295,43 @@
     }
 
     .section-title { font-size: 1.4rem; font-weight: 800; }
+
+    /* ── COMPANION GREETING ── */
+    .companion {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .companion-avatar {
+      font-size: 2rem;
+      background: rgba(255,107,53,0.15);
+      border: 1px solid rgba(255,107,53,0.3);
+      border-radius: 50%;
+      width: 52px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .companion-text .greeting {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .companion-text .message {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.5;
+    }
 
     /* ── HABIT CARDS ── */
     .habits-grid {
@@ -207,7 +349,7 @@
     }
 
     .habit-card:hover { border-color: var(--accent2); transform: translateY(-2px); }
-    .habit-card.done { border-color: rgba(34,197,94,0.4); background: rgba(34,197,94,0.05); }
+    .habit-card.done  { border-color: rgba(34,197,94,0.4); background: rgba(34,197,94,0.05); }
 
     .habit-card-top {
       display: flex;
@@ -230,16 +372,16 @@
       white-space: nowrap;
     }
 
-    .habit-desc { font-size: 0.85rem; color: var(--muted); margin-bottom: 16px; line-height: 1.5; }
+    .habit-desc { font-size: 0.85rem; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
 
-    .habit-stats { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+    .habit-stats { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
 
     .stat-pill {
       display: flex;
       align-items: center;
       gap: 5px;
       font-family: 'Space Mono', monospace;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 20px;
@@ -247,7 +389,7 @@
     }
 
     .stat-pill.streak { color: var(--accent); }
-    .stat-pill.total { color: var(--accent2); }
+    .stat-pill.total  { color: var(--accent2); }
 
     .habit-actions { display: flex; gap: 8px; }
 
@@ -270,9 +412,10 @@
 
     /* ── EMPTY STATE ── */
     .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); grid-column: 1 / -1; }
-    .empty-state .emoji { font-size: 3rem; margin-bottom: 12px; }
+    .empty-state .e-emoji { font-size: 3rem; margin-bottom: 12px; }
     .empty-state h3 { font-size: 1.1rem; color: var(--text); margin-bottom: 8px; }
-    .empty-state p { font-size: 0.9rem; margin-bottom: 24px; }
+    .empty-state p  { font-size: 0.9rem; margin-bottom: 24px; }
+    .empty-state .btn { width: auto; padding: 12px 28px; }
 
     /* ── MODAL ── */
     .modal-overlay {
@@ -299,11 +442,6 @@
       animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
       max-height: 90vh;
       overflow-y: auto;
-    }
-
-    @keyframes slideUp {
-      from { transform: translateY(40px); opacity: 0; }
-      to   { transform: translateY(0);    opacity: 1; }
     }
 
     .modal-header {
@@ -344,11 +482,11 @@
       margin-bottom: 16px;
     }
 
-    .upload-zone:hover { border-color: var(--accent2); background: rgba(124,58,237,0.05); }
-    .upload-zone.has-file { border-color: var(--green); background: rgba(34,197,94,0.05); }
-    .upload-zone input { display: none; }
-    .upload-zone-icon { font-size: 2rem; margin-bottom: 8px; }
-    .upload-zone-text { font-size: 0.85rem; color: var(--muted); }
+    .upload-zone:hover      { border-color: var(--accent2); background: rgba(124,58,237,0.05); }
+    .upload-zone.has-file   { border-color: var(--green);   background: rgba(34,197,94,0.05); }
+    .upload-zone input      { display: none; }
+    .upload-zone-icon       { font-size: 2rem; margin-bottom: 8px; }
+    .upload-zone-text       { font-size: 0.85rem; color: var(--muted); }
     .upload-zone-text strong { color: var(--text); }
 
     /* ── RESULT CARD ── */
@@ -356,7 +494,7 @@
     .result-card.success { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); }
     .result-card.failure { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); }
 
-    .result-icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .result-icon  { font-size: 2.5rem; margin-bottom: 12px; }
     .result-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 8px; }
     .result-card.success .result-title { color: var(--green); }
     .result-card.failure .result-title { color: var(--red); }
@@ -432,8 +570,8 @@
       max-width: 320px;
     }
 
-    .toast.error  { border-color: rgba(239,68,68,0.4);  color: #fca5a5; }
-    .toast.success{ border-color: rgba(34,197,94,0.4);  color: #86efac; }
+    .toast.error   { border-color: rgba(239,68,68,0.4);  color: #fca5a5; }
+    .toast.success { border-color: rgba(34,197,94,0.4);  color: #86efac; }
 
     @keyframes toastIn {
       from { transform: translateX(40px); opacity: 0; }
@@ -444,7 +582,9 @@
       .header { flex-direction: column; gap: 16px; align-items: flex-start; }
       .habits-grid { grid-template-columns: 1fr; }
       .modal { padding: 24px 20px; }
-      .onboarding-card { padding: 32px 24px; }
+      .onboard-card { padding: 28px 20px; }
+      .choice-grid { grid-template-columns: 1fr; }
+      .intensity-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -453,44 +593,70 @@
 <div class="app">
 
   <header class="header">
-    <div class="logo">Habit<span>Forge</span></div>
+    <div class="logo">Habitu<span>AI</span></div>
     <div class="xp-widget" id="xpWidget" style="display:none">
       <div class="level-badge" id="levelBadge">LVL 1</div>
       <div class="xp-bar-wrap">
-        <div class="xp-label">
-          <span>XP</span>
-          <span id="xpText">0</span>
-        </div>
-        <div class="xp-bar">
-          <div class="xp-fill" id="xpFill" style="width:0%"></div>
-        </div>
+        <div class="xp-label"><span>XP</span><span id="xpText">0</span></div>
+        <div class="xp-bar"><div class="xp-fill" id="xpFill" style="width:0%"></div></div>
       </div>
     </div>
   </header>
 
-  <!-- ONBOARDING -->
-  <div id="screenOnboard" class="screen active">
-    <div class="onboarding-card">
-      <div class="emoji">⚒️</div>
-      <h1>Build Better Habits</h1>
-      <p>AI verifies your progress with real proof — no more checkbox cheating.</p>
-      <div class="form-group">
-        <label>Your Name</label>
-        <input type="text" id="onboardName" placeholder="Enter your name..." maxlength="100" />
+  <!-- ══════════════════════════════════════════════
+       SCREEN 1: ACCOUNT CREATION (name + email)
+  ══════════════════════════════════════════════ -->
+  <div id="screenAccount" class="screen active">
+    <div class="onboarding-wrap">
+      <div class="step-indicator" id="stepDots"></div>
+      <div class="onboard-card">
+        <div class="onboard-emoji">⚡</div>
+        <div class="onboard-title">Welcome to HabituAI</div>
+        <div class="onboard-sub">Your AI companion for leveling up real life. Let's get you set up.</div>
+        <div class="form-group">
+          <label>Your Name</label>
+          <input type="text" id="onboardName" placeholder="What should we call you?" maxlength="100" />
+        </div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="onboardEmail" placeholder="you@example.com" maxlength="200" />
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="accountBtn" onclick="submitAccount()">Let's Go →</button>
+        </div>
       </div>
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="onboardEmail" placeholder="you@example.com" maxlength="200" />
-      </div>
-      <button class="btn btn-primary" id="startBtn" onclick="createUser()">🚀 Start Tracking</button>
     </div>
   </div>
 
-  <!-- DASHBOARD -->
+  <!-- ══════════════════════════════════════════════
+       SCREEN 2: ONBOARDING SURVEY (6 steps)
+  ══════════════════════════════════════════════ -->
+  <div id="screenSurvey" class="screen">
+    <div class="onboarding-wrap">
+      <div class="step-indicator" id="surveyDots"></div>
+      <div id="surveyCard" class="onboard-card">
+        <!-- injected by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       SCREEN 3: DASHBOARD
+  ══════════════════════════════════════════════ -->
   <div id="screenDash" class="screen">
+
+    <!-- AI Companion Greeting -->
+    <div class="companion" id="companion">
+      <div class="companion-avatar">⚡</div>
+      <div class="companion-text">
+        <div class="greeting" id="companionGreeting">Hey there!</div>
+        <div class="message" id="companionMessage">Loading your stats…</div>
+      </div>
+    </div>
+
     <div class="dashboard-top">
-      <div class="section-title">Your Habits</div>
-      <button class="btn btn-secondary" onclick="openAddModal()">+ New Habit</button>
+      <div class="section-title">Today's Habits</div>
+      <button class="btn btn-secondary" style="width:auto;padding:10px 18px" onclick="openAddModal()">+ New Habit</button>
     </div>
     <div id="habitsGrid" class="habits-grid"></div>
   </div>
@@ -514,9 +680,11 @@
     </div>
     <div class="form-group">
       <label>Proof Instructions</label>
-      <textarea id="habitProof" placeholder="e.g. Upload a screenshot of your fitness app showing today's run" maxlength="1000"></textarea>
+      <textarea id="habitProof" placeholder="e.g. Screenshot of fitness app showing today's run" maxlength="1000"></textarea>
     </div>
-    <button class="btn btn-primary" id="addHabitBtn" onclick="addHabit()">Create Habit</button>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="addHabitBtn" onclick="addHabit()">Create Habit</button>
+    </div>
   </div>
 </div>
 
@@ -525,11 +693,8 @@
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title" id="verifyModalTitle">Verify Habit</div>
-      <!-- Close button is hidden while verifying so you can't abandon mid-request -->
       <button class="close-btn" id="verifyCloseBtn" onclick="closeModal('verifyModal')">✕</button>
     </div>
-
-    <!-- Form state -->
     <div id="verifyForm">
       <div class="proof-hint">
         <strong>📋 What counts as proof:</strong>
@@ -538,26 +703,20 @@
       <div class="upload-zone" id="uploadZone" onclick="document.getElementById('proofFile').click()">
         <input type="file" id="proofFile" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" onchange="handleFileSelect(this)" />
         <div class="upload-zone-icon">📷</div>
-        <div class="upload-zone-text" id="uploadText">
-          <strong>Upload proof image</strong><br>click to browse
-        </div>
+        <div class="upload-zone-text" id="uploadText"><strong>Upload proof image</strong><br>click to browse</div>
       </div>
       <div class="form-group">
         <label>Or add a note</label>
-        <textarea id="proofNote" placeholder="Describe what you did..." maxlength="2000"></textarea>
+        <textarea id="proofNote" placeholder="Describe what you did…" maxlength="2000"></textarea>
       </div>
       <button class="btn btn-primary" id="verifyBtn" onclick="submitVerification()">🤖 Verify with AI</button>
     </div>
-
-    <!-- Loading state -->
     <div id="verifyLoading" style="display:none">
       <div class="verifying-state">
         <div class="spinner"></div>
         <p>AI is reviewing your proof…</p>
       </div>
     </div>
-
-    <!-- Result state -->
     <div id="verifyResult" style="display:none"></div>
   </div>
 </div>
@@ -565,72 +724,331 @@
 <div class="toast-container" id="toastContainer"></div>
 
 <script>
-// ─── STATE ────────────────────────────────────────────────────────────────────
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
 const API = 'https://habit-tracker-ai-production.up.railway.app/api';
-let currentUser = null;
-let currentHabitId = null;
-let habits = [];
-let isVerifying = false; // prevents double-submit
-
-// Browser's timezone offset in minutes (e.g. -360 for CST)
-// We send this to the server so "today" is calculated in the user's local time
 const TZ_OFFSET = new Date().getTimezoneOffset();
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let currentUser   = null;
+let currentHabitId = null;
+let habits        = [];
+let isVerifying   = false;
+
+// Survey answers accumulate here as the user goes through steps
+let surveyAnswers = {
+  role: null,          // student | working | both | neither
+  focus: [],           // array of category keys
+  obstacle: null,
+  intensity: null,
+  motivation: [],
+  busyness: null
+};
+
+// ─── SURVEY DEFINITION ───────────────────────────────────────────────────────
+const SURVEY_STEPS = [
+  {
+    id: 'role',
+    emoji: '👋',
+    title: "First things first…",
+    sub: "What best describes your situation right now?",
+    type: 'single',
+    key: 'role',
+    options: [
+      { value: 'student',  emoji: '🎓', label: 'Student' },
+      { value: 'working',  emoji: '💼', label: 'Working' },
+      { value: 'both',     emoji: '🎓💼', label: 'Both' },
+      { value: 'neither',  emoji: '🏠', label: 'Neither' }
+    ]
+  },
+  {
+    id: 'focus',
+    emoji: '🎯',
+    title: "What do you want to improve?",
+    sub: "Pick everything that matters to you. No wrong answers.",
+    type: 'multi',
+    key: 'focus',
+    options: [
+      { value: 'fitness',      emoji: '🏋️', label: 'Health & Fitness' },
+      { value: 'wellbeing',    emoji: '🧠', label: 'Mental Health & Wellbeing' },
+      { value: 'home',         emoji: '🏠', label: 'Home & Chores' },
+      { value: 'productivity', emoji: '⚡', label: 'Productivity & Work' },
+      { value: 'school',       emoji: '📚', label: 'School & Studying' },
+      { value: 'nutrition',    emoji: '🍎', label: 'Food & Nutrition' },
+      { value: 'finance',      emoji: '💸', label: 'Finance' },
+      { value: 'social',       emoji: '👥', label: 'Social & Relationships' }
+    ]
+  },
+  {
+    id: 'obstacle',
+    emoji: '🚧',
+    title: "What gets in your way?",
+    sub: "Be honest — this helps the AI understand how to help you.",
+    type: 'single',
+    key: 'obstacle',
+    options: [
+      { value: 'motivation', emoji: '😴', label: 'Low motivation' },
+      { value: 'forgetting', emoji: '🫠', label: 'I just forget' },
+      { value: 'overwhelm',  emoji: '🌊', label: 'I get overwhelmed' },
+      { value: 'time',       emoji: '⏰', label: 'Not enough time' },
+      { value: 'boredom',    emoji: '😐', label: 'Things get boring fast' }
+    ]
+  },
+  {
+    id: 'intensity',
+    emoji: '🔥',
+    title: "How hard do you want to be pushed?",
+    sub: "You can always change this later.",
+    type: 'intensity',
+    key: 'intensity',
+    options: [
+      { value: 'chill',    emoji: '😌', label: 'Chill',    sub: 'Gentle nudges, forgiving streaks' },
+      { value: 'balanced', emoji: '⚖️',  label: 'Balanced', sub: 'The sweet spot for most people' },
+      { value: 'intense',  emoji: '💪', label: 'Intense',  sub: 'High standards, no excuses' }
+    ]
+  },
+  {
+    id: 'motivation',
+    emoji: '✨',
+    title: "What actually motivates you?",
+    sub: "Pick all that apply — we'll lean into these.",
+    type: 'multi',
+    key: 'motivation',
+    options: [
+      { value: 'rewards',     emoji: '🏆', label: 'Rewards & XP' },
+      { value: 'streaks',     emoji: '🔥', label: 'Keeping streaks alive' },
+      { value: 'progress',    emoji: '📈', label: 'Seeing progress visually' },
+      { value: 'competition', emoji: '🥇', label: 'Competing with others' },
+      { value: 'encouragement', emoji: '💬', label: 'Encouragement & support' }
+    ]
+  },
+  {
+    id: 'busyness',
+    emoji: '📅',
+    title: "How packed is your day usually?",
+    sub: "This helps us suggest a realistic number of habits.",
+    type: 'single',
+    key: 'busyness',
+    options: [
+      { value: 'light',    emoji: '🌅', label: 'Pretty relaxed — I have time' },
+      { value: 'moderate', emoji: '🌤', label: 'Moderate — some breathing room' },
+      { value: 'packed',   emoji: '🌪', label: 'Packed — every minute counts' }
+    ]
+  }
+];
+
+let currentSurveyStep = 0;
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 window.onload = () => {
+  renderStepDots('stepDots', 1, 1); // just the account step shown initially
   const savedId = localStorage.getItem('userId');
   if (savedId) loadUser(savedId);
 };
 
-// ─── USER ─────────────────────────────────────────────────────────────────────
-async function createUser() {
+// ─── STEP DOTS ────────────────────────────────────────────────────────────────
+function renderStepDots(containerId, current, total) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = Array.from({ length: total }, (_, i) => {
+    const cls = i + 1 < current ? 'done' : i + 1 === current ? 'active' : '';
+    return `<div class="step-dot ${cls}"></div>`;
+  }).join('');
+}
+
+// ─── ACCOUNT STEP ─────────────────────────────────────────────────────────────
+async function submitAccount() {
   const name  = document.getElementById('onboardName').value.trim();
   const email = document.getElementById('onboardEmail').value.trim();
 
   if (!name || !email) return toast('Please fill in both fields', 'error');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return toast('Please enter a valid email', 'error');
 
-  // Basic email format check before even hitting the server
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return toast('Please enter a valid email address', 'error');
-  }
-
-  const btn = document.getElementById('startBtn');
+  const btn = document.getElementById('accountBtn');
   btn.disabled = true;
   btn.textContent = 'Starting…';
 
   try {
-    const res = await fetch(`${API}/users`, {
+    const res  = await fetch(`${API}/users`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email })
     });
     const data = await res.json();
+
     if (!res.ok) {
       btn.disabled = false;
-      btn.textContent = '🚀 Start Tracking';
+      btn.textContent = "Let's Go →";
       return toast(data.error || 'Could not create account', 'error');
     }
 
     localStorage.setItem('userId', data.id);
-    await loadUser(data.id);
-    toast(data.alreadyExisted ? `Welcome back, ${data.name}!` : `Welcome, ${data.name}! 🎉`, 'success');
+    currentUser = data;
+
+    // If they already completed onboarding, go straight to dashboard
+    if (data.onboarding_complete) {
+      await loadUser(data.id);
+      toast(`Welcome back, ${data.name}! 🎉`, 'success');
+    } else {
+      // New user — start the survey
+      showScreen('screenSurvey');
+      currentSurveyStep = 0;
+      renderSurveyStep();
+    }
+
   } catch (e) {
     btn.disabled = false;
-    btn.textContent = '🚀 Start Tracking';
+    btn.textContent = "Let's Go →";
     toast('Cannot connect to server. Is it running?', 'error');
   }
 }
 
+// ─── SURVEY ──────────────────────────────────────────────────────────────────
+function renderSurveyStep() {
+  const step  = SURVEY_STEPS[currentSurveyStep];
+  const total = SURVEY_STEPS.length;
+
+  renderStepDots('surveyDots', currentSurveyStep + 1, total);
+
+  const card = document.getElementById('surveyCard');
+  card.style.animation = 'none';
+  card.offsetHeight; // force reflow to restart animation
+  card.style.animation = '';
+
+  let optionsHTML = '';
+
+  if (step.type === 'intensity') {
+    optionsHTML = `<div class="intensity-grid">` +
+      step.options.map(o => `
+        <button class="intensity-btn ${surveyAnswers[step.key] === o.value ? 'selected' : ''}"
+                onclick="selectIntensity('${o.value}')">
+          <div class="i-emoji">${o.emoji}</div>
+          <div class="i-label">${o.label}</div>
+          <div class="i-sub">${o.sub}</div>
+        </button>`).join('') +
+      `</div>`;
+  } else {
+    const selected = step.type === 'multi' ? (surveyAnswers[step.key] || []) : [];
+    optionsHTML = `<div class="choice-grid">` +
+      step.options.map(o => {
+        const isSelected = step.type === 'multi'
+          ? selected.includes(o.value)
+          : surveyAnswers[step.key] === o.value;
+        return `
+          <button class="choice-btn ${isSelected ? 'selected' : ''}"
+                  onclick="selectChoice('${step.key}', '${o.value}', '${step.type}', this)">
+            <span class="choice-emoji">${o.emoji}</span>
+            <span>${o.label}</span>
+          </button>`;
+      }).join('') +
+      `</div>`;
+  }
+
+  const isLast  = currentSurveyStep === total - 1;
+  const isFirst = currentSurveyStep === 0;
+
+  card.innerHTML = `
+    <div class="onboard-emoji">${step.emoji}</div>
+    <div class="onboard-title">${step.title}</div>
+    <div class="onboard-sub">${step.sub}</div>
+    ${optionsHTML}
+    <div class="btn-row">
+      ${isFirst ? '' : `<button class="btn btn-ghost" onclick="prevSurveyStep()">← Back</button>`}
+      <button class="btn btn-primary" id="surveyNextBtn" onclick="nextSurveyStep()">
+        ${isLast ? "🚀 Let's Go!" : 'Next →'}
+      </button>
+    </div>`;
+}
+
+function selectChoice(key, value, type, btn) {
+  if (type === 'single') {
+    surveyAnswers[key] = value;
+    // Deselect all siblings
+    btn.closest('.choice-grid').querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  } else {
+    // Multi select — toggle
+    if (!Array.isArray(surveyAnswers[key])) surveyAnswers[key] = [];
+    const idx = surveyAnswers[key].indexOf(value);
+    if (idx === -1) {
+      surveyAnswers[key].push(value);
+      btn.classList.add('selected');
+    } else {
+      surveyAnswers[key].splice(idx, 1);
+      btn.classList.remove('selected');
+    }
+  }
+}
+
+function selectIntensity(value) {
+  surveyAnswers.intensity = value;
+  document.querySelectorAll('.intensity-btn').forEach(b => b.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+}
+
+function nextSurveyStep() {
+  const step = SURVEY_STEPS[currentSurveyStep];
+
+  // Validate — single select must have a value, multi must have at least one
+  if (step.type === 'single' || step.type === 'intensity') {
+    if (!surveyAnswers[step.key]) return toast('Please make a selection to continue', 'error');
+  } else if (step.type === 'multi') {
+    if (!surveyAnswers[step.key] || surveyAnswers[step.key].length === 0) {
+      return toast('Pick at least one option', 'error');
+    }
+  }
+
+  if (currentSurveyStep < SURVEY_STEPS.length - 1) {
+    currentSurveyStep++;
+    renderSurveyStep();
+  } else {
+    submitSurvey();
+  }
+}
+
+function prevSurveyStep() {
+  if (currentSurveyStep > 0) {
+    currentSurveyStep--;
+    renderSurveyStep();
+  }
+}
+
+async function submitSurvey() {
+  const btn = document.getElementById('surveyNextBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  try {
+    const res = await fetch(`${API}/users/${currentUser.id}/profile`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ profile: surveyAnswers })
+    });
+
+    if (!res.ok) throw new Error('Failed to save profile');
+
+    await loadUser(currentUser.id);
+    toast(`You're all set, ${currentUser.name}! Let's level up 🚀`, 'success');
+
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = "🚀 Let's Go!";
+    toast('Could not save your profile. Please try again.', 'error');
+  }
+}
+
+// ─── USER ─────────────────────────────────────────────────────────────────────
 async function loadUser(id) {
   try {
     const res = await fetch(`${API}/users/${id}`);
-    if (!res.ok) {
-      localStorage.removeItem('userId');
-      return;
-    }
+    if (!res.ok) { localStorage.removeItem('userId'); return; }
     currentUser = await res.json();
-    showDashboard();
+    // Parse profile JSON if stored as string
+    if (currentUser.profile && typeof currentUser.profile === 'string') {
+      try { currentUser.profile = JSON.parse(currentUser.profile); } catch(e) {}
+    }
+    showScreen('screenDash');
     updateXpWidget();
+    renderCompanionGreeting();
     loadHabits();
   } catch (e) {
     toast('Cannot connect to server. Is it running?', 'error');
@@ -639,11 +1057,9 @@ async function loadUser(id) {
 
 function updateXpWidget(overrides = {}) {
   if (!currentUser) return;
-
-  // Allow passing fresh values from a verification response without re-fetching
-  const xp       = overrides.xp       ?? currentUser.xp;
-  const level     = overrides.level    ?? currentUser.level;
-  const pct       = overrides.pct      ?? currentUser.xpProgressPercent ?? 0;
+  const xp    = overrides.xp  ?? currentUser.xp;
+  const level = overrides.level ?? currentUser.level;
+  const pct   = overrides.pct ?? currentUser.xpProgressPercent ?? 0;
 
   document.getElementById('xpWidget').style.display = 'flex';
   document.getElementById('levelBadge').textContent = `LVL ${level}`;
@@ -651,10 +1067,49 @@ function updateXpWidget(overrides = {}) {
   document.getElementById('xpFill').style.width = pct + '%';
 }
 
+// ─── COMPANION GREETING ───────────────────────────────────────────────────────
+function renderCompanionGreeting() {
+  if (!currentUser) return;
+
+  const hour = new Date().getHours();
+  const timeGreeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+
+  const firstName = currentUser.name.split(' ')[0];
+  document.getElementById('companionGreeting').textContent = `${timeGreeting}, ${firstName}! 👋`;
+
+  // Build a contextual message based on their data
+  let message = '';
+  const streak = habits.length > 0 ? Math.max(...habits.map(h => h.streak)) : 0;
+  const doneToday = habits.filter(h => h.completedToday).length;
+  const totalToday = habits.length;
+
+  if (totalToday === 0) {
+    message = "You haven't added any habits yet — hit the button above to create your first one!";
+  } else if (doneToday === totalToday) {
+    message = `You crushed everything today! All ${totalToday} habits done. Come back tomorrow to keep the momentum going. 🏆`;
+  } else if (doneToday === 0) {
+    const profile = currentUser.profile;
+    const intensity = profile?.intensity;
+    if (intensity === 'intense') {
+      message = `${totalToday - doneToday} habit${totalToday - doneToday > 1 ? 's' : ''} waiting. You set the bar high — now clear it.`;
+    } else {
+      message = `You've got ${totalToday - doneToday} habit${totalToday - doneToday > 1 ? 's' : ''} to tackle today. You've got this! 💪`;
+    }
+  } else {
+    message = `${doneToday} of ${totalToday} done today — ${totalToday - doneToday} more to go. Keep the momentum!`;
+  }
+
+  if (streak >= 3 && doneToday < totalToday) {
+    message += ` Don't break your ${streak}-day streak!`;
+  }
+
+  document.getElementById('companionMessage').textContent = message;
+}
+
 // ─── SCREENS ──────────────────────────────────────────────────────────────────
-function showDashboard() {
-  document.getElementById('screenOnboard').classList.remove('active');
-  document.getElementById('screenDash').classList.add('active');
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
 }
 
 // ─── HABITS ───────────────────────────────────────────────────────────────────
@@ -665,10 +1120,11 @@ async function loadHabits() {
     if (!res.ok) throw new Error('Server error');
     habits = await res.json();
     renderHabits();
+    renderCompanionGreeting(); // refresh greeting with real habit data
   } catch (e) {
     document.getElementById('habitsGrid').innerHTML = `
       <div class="empty-state">
-        <div class="emoji">⚠️</div>
+        <div class="e-emoji">⚠️</div>
         <h3>Could not load habits</h3>
         <p>Make sure the server is running, then <a href="javascript:loadHabits()" style="color:var(--accent)">try again</a>.</p>
       </div>`;
@@ -681,10 +1137,10 @@ function renderHabits() {
   if (habits.length === 0) {
     grid.innerHTML = `
       <div class="empty-state">
-        <div class="emoji">🌱</div>
+        <div class="e-emoji">🌱</div>
         <h3>No habits yet</h3>
-        <p>Create your first habit to get started</p>
-        <button class="btn btn-primary" style="width:auto;padding:12px 28px" onclick="openAddModal()">+ Create Habit</button>
+        <p>Create your first habit to start earning XP</p>
+        <button class="btn btn-primary" onclick="openAddModal()">+ Create Habit</button>
       </div>`;
     return;
   }
@@ -707,8 +1163,7 @@ function renderHabits() {
         }
         <button class="btn btn-danger" onclick="deleteHabit(${h.id}, ${currentUser.id})">🗑</button>
       </div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
 // ─── ADD HABIT ────────────────────────────────────────────────────────────────
@@ -722,11 +1177,11 @@ function openAddModal() {
 }
 
 async function addHabit() {
-  const name              = document.getElementById('habitName').value.trim();
-  const description       = document.getElementById('habitDesc').value.trim();
+  const name               = document.getElementById('habitName').value.trim();
+  const description        = document.getElementById('habitDesc').value.trim();
   const proof_instructions = document.getElementById('habitProof').value.trim();
 
-  if (!name)              return toast('Habit name is required', 'error');
+  if (!name)               return toast('Habit name is required', 'error');
   if (!proof_instructions) return toast('Proof instructions are required', 'error');
 
   const btn = document.getElementById('addHabitBtn');
@@ -752,7 +1207,7 @@ async function addHabit() {
   } catch (e) {
     btn.disabled = false;
     btn.textContent = 'Create Habit';
-    toast('Failed to create habit — is the server running?', 'error');
+    toast('Failed — is the server running?', 'error');
   }
 }
 
@@ -773,9 +1228,9 @@ function openVerifyModal(habitId) {
   if (!habit) return;
 
   currentHabitId = habitId;
-  isVerifying = false;
+  isVerifying    = false;
 
-  document.getElementById('verifyModalTitle').textContent = `Verify: ${escHtml(habit.name)}`;
+  document.getElementById('verifyModalTitle').textContent = `Verify: ${habit.name}`;
   document.getElementById('proofInstructions').textContent = habit.proof_instructions;
   document.getElementById('proofNote').value = '';
   document.getElementById('proofFile').value = '';
@@ -801,7 +1256,6 @@ function handleFileSelect(input) {
 }
 
 async function submitVerification() {
-  // Prevent double-submit
   if (isVerifying) return;
 
   const note = document.getElementById('proofNote').value.trim();
@@ -810,12 +1264,8 @@ async function submitVerification() {
   if (!file && !note) return toast('Please upload an image or add a note', 'error');
 
   isVerifying = true;
-
-  // Disable verify button and hide close button while in-flight
   document.getElementById('verifyBtn').disabled = true;
   document.getElementById('verifyCloseBtn').style.display = 'none';
-
-  // Switch to loading view
   document.getElementById('verifyForm').style.display = 'none';
   document.getElementById('verifyLoading').style.display = 'block';
 
@@ -825,11 +1275,7 @@ async function submitVerification() {
     if (note) formData.append('proof_note', note);
     formData.append('tzOffset', TZ_OFFSET);
 
-    const res = await fetch(`${API}/habits/${currentHabitId}/verify`, {
-      method: 'POST',
-      body: formData
-    });
-
+    const res  = await fetch(`${API}/habits/${currentHabitId}/verify`, { method: 'POST', body: formData });
     const data = await res.json();
 
     document.getElementById('verifyLoading').style.display = 'none';
@@ -852,7 +1298,6 @@ async function submitVerification() {
     }
 
     if (data.verified) {
-      // Update local user state with fresh XP from server
       currentUser.xp    = data.userXp;
       currentUser.level = data.userLevel;
       updateXpWidget({ xp: data.userXp, level: data.userLevel, pct: data.xpProgressPercent });
@@ -883,7 +1328,7 @@ async function submitVerification() {
       <div class="result-card failure">
         <div class="result-icon">🔌</div>
         <div class="result-title">Connection Error</div>
-        <div class="result-explanation">Could not reach the server. Make sure it's running.</div>
+        <div class="result-explanation">Could not reach the server.</div>
       </div>
       <div class="result-actions">
         <button class="btn btn-secondary" onclick="resetVerifyModal()">Try Again</button>
@@ -892,7 +1337,6 @@ async function submitVerification() {
   }
 }
 
-// Reset verify modal back to the form so user can try again
 function resetVerifyModal() {
   isVerifying = false;
   document.getElementById('verifyBtn').disabled = false;
@@ -901,7 +1345,6 @@ function resetVerifyModal() {
   document.getElementById('proofFile').value = '';
   document.getElementById('uploadZone').classList.remove('has-file');
   document.getElementById('uploadText').innerHTML = '<strong>Upload proof image</strong><br>click to browse';
-
   document.getElementById('verifyForm').style.display = 'block';
   document.getElementById('verifyLoading').style.display = 'none';
   document.getElementById('verifyResult').style.display = 'none';
@@ -910,7 +1353,6 @@ function resetVerifyModal() {
 // ─── UTILITIES ────────────────────────────────────────────────────────────────
 function openModal(id)  { document.getElementById(id).classList.add('active'); }
 function closeModal(id) {
-  // Don't allow closing verify modal while a request is in flight
   if (id === 'verifyModal' && isVerifying) return;
   document.getElementById(id).classList.remove('active');
 }
@@ -929,12 +1371,10 @@ function toast(msg, type = 'success') {
   setTimeout(() => el.remove(), 3500);
 }
 
-// Overlay click to close — but only if not mid-verification
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', e => {
     if (e.target !== overlay) return;
-    const id = overlay.id;
-    if (id === 'verifyModal' && isVerifying) return;
+    if (overlay.id === 'verifyModal' && isVerifying) return;
     overlay.classList.remove('active');
   });
 });

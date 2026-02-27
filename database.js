@@ -1,34 +1,30 @@
 // backend/database.js
-// This file sets up our SQLite database and creates all the tables we need
-
 const Database = require('better-sqlite3');
 const path = require('path');
 
-// Create (or open) the database file
 const db = new Database(path.join(__dirname, 'habits.db'));
-
-// Enable WAL mode for better performance
 db.pragma('journal_mode = WAL');
 
-// Create all our tables
 db.exec(`
-  -- Users table: stores each user's profile
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
     xp INTEGER DEFAULT 0,
     level INTEGER DEFAULT 1,
+    profile TEXT DEFAULT NULL,
+    onboarding_complete INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
-  -- Habits table: each habit a user wants to track
   CREATE TABLE IF NOT EXISTS habits (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER NOT NULL,
     name TEXT NOT NULL,
     description TEXT,
     proof_instructions TEXT NOT NULL,
+    frequency_type TEXT DEFAULT 'daily',
+    frequency_count INTEGER DEFAULT 1,
     streak INTEGER DEFAULT 0,
     longest_streak INTEGER DEFAULT 0,
     total_completions INTEGER DEFAULT 0,
@@ -36,7 +32,6 @@ db.exec(`
     FOREIGN KEY (user_id) REFERENCES users(id)
   );
 
-  -- Completions table: each time a habit is verified
   CREATE TABLE IF NOT EXISTS completions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     habit_id INTEGER NOT NULL,
@@ -53,6 +48,21 @@ db.exec(`
   );
 `);
 
-console.log('✅ Database ready!');
+// Safely add new columns to existing databases
+// (If you already have a database, ALTER TABLE adds the missing columns without wiping data)
+const addColumnIfMissing = (table, column, definition) => {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all();
+  const exists = cols.some(c => c.name === column);
+  if (!exists) {
+    db.prepare(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`).run();
+    console.log(`✅ Added column: ${table}.${column}`);
+  }
+};
 
+addColumnIfMissing('users', 'profile', 'TEXT DEFAULT NULL');
+addColumnIfMissing('users', 'onboarding_complete', 'INTEGER DEFAULT 0');
+addColumnIfMissing('habits', 'frequency_type', "TEXT DEFAULT 'daily'");
+addColumnIfMissing('habits', 'frequency_count', 'INTEGER DEFAULT 1');
+
+console.log('✅ Database ready!');
 module.exports = db;
