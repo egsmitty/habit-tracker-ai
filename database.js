@@ -71,5 +71,41 @@ addColumnIfMissing('users', 'username_changed', 'INTEGER DEFAULT 0');
 addColumnIfMissing('habits', 'frequency_type',  "TEXT DEFAULT 'daily'");
 addColumnIfMissing('habits', 'frequency_count', 'INTEGER DEFAULT 1');
 
+// The old schema had name TEXT NOT NULL which blocks email-only signups.
+// We migrate the table to remove that constraint by recreating it.
+try {
+  const cols = db.prepare('PRAGMA table_info(users)').all();
+  const nameCol = cols.find(c => c.name === 'name');
+  if (nameCol && nameCol.notnull === 1) {
+    console.log('🔧 Migrating users table to remove name NOT NULL constraint...');
+    db.exec(`
+      BEGIN;
+      ALTER TABLE users RENAME TO users_old;
+      CREATE TABLE users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        email TEXT UNIQUE NOT NULL,
+        name TEXT,
+        display_name TEXT,
+        username TEXT,
+        bio TEXT DEFAULT '',
+        banner_color TEXT DEFAULT '#7c3aed',
+        username_changed INTEGER DEFAULT 0,
+        xp INTEGER DEFAULT 0,
+        level INTEGER DEFAULT 1,
+        profile TEXT DEFAULT NULL,
+        onboarding_complete INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+      INSERT INTO users (id, email, name, xp, level, profile, onboarding_complete, created_at)
+        SELECT id, email, name, xp, level, profile, onboarding_complete, created_at FROM users_old;
+      DROP TABLE users_old;
+      COMMIT;
+    `);
+    console.log('✅ Migration complete');
+  }
+} catch (e) {
+  console.error('Migration error:', e.message);
+}
+
 console.log('✅ Database ready!');
 module.exports = db;
