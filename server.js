@@ -112,6 +112,7 @@ function cleanupFile(filePath) {
 
 // Input length limits
 const LIMITS = {
+  name: 100,
   display_name: 50,
   username: 20,
   bio: 150,
