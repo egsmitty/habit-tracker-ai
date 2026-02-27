@@ -604,45 +604,963 @@
   </header>
 
   <!-- ══════════════════════════════════════════════
-       SCREEN 1: ACCOUNT CREATION (name + email)
+       SCREEN 1: LANDING — Sign Up vs Sign In
   ══════════════════════════════════════════════ -->
-  <div id="screenAccount" class="screen active">
+  <div id="screenLanding" class="screen active">
     <div class="onboarding-wrap">
-      <div class="step-indicator" id="stepDots"></div>
-      <div class="onboard-card">
+      <div class="onboard-card" style="text-align:center">
         <div class="onboard-emoji">⚡</div>
         <div class="onboard-title">Welcome to HabituAI</div>
-        <div class="onboard-sub">Your AI companion for leveling up real life. Let's get you set up.</div>
-        <div class="form-group">
-          <label>Your Name</label>
-          <input type="text" id="onboardName" placeholder="What should we call you?" maxlength="100" />
-        </div>
-        <div class="form-group">
-          <label>Email</label>
-          <input type="email" id="onboardEmail" placeholder="you@example.com" maxlength="200" />
-        </div>
-        <div class="btn-row">
-          <button class="btn btn-primary" id="accountBtn" onclick="submitAccount()">Let's Go →</button>
+        <div class="onboard-sub">Your AI companion for leveling up real life.</div>
+        <div class="btn-row" style="flex-direction:column;gap:12px">
+          <button class="btn btn-primary" onclick="showScreen('screenSignUp')">🚀 Create Account</button>
+          <button class="btn btn-ghost" onclick="showScreen('screenSignIn')">Already have an account? Sign In</button>
         </div>
       </div>
     </div>
   </div>
 
   <!-- ══════════════════════════════════════════════
-       SCREEN 2: ONBOARDING SURVEY (6 steps)
+       SCREEN 2: SIGN UP
+  ══════════════════════════════════════════════ -->
+  <div id="screenSignUp" class="screen">
+    <div class="onboarding-wrap">
+      <div class="onboard-card">
+        <div class="onboard-emoji">✨</div>
+        <div class="onboard-title">Create your account</div>
+        <div class="onboard-sub">Just your email to start — you'll set up your identity after the survey.</div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="signUpEmail" placeholder="you@example.com" maxlength="200" />
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-ghost" onclick="showScreen('screenLanding')">← Back</button>
+          <button class="btn btn-primary" id="signUpBtn" onclick="submitSignUp()">Continue →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       SCREEN 3: SIGN IN
+  ══════════════════════════════════════════════ -->
+  <div id="screenSignIn" class="screen">
+    <div class="onboarding-wrap">
+      <div class="onboard-card">
+        <div class="onboard-emoji">👋</div>
+        <div class="onboard-title">Welcome back</div>
+        <div class="onboard-sub">Enter your email to pick up where you left off.</div>
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="signInEmail" placeholder="you@example.com" maxlength="200" />
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-ghost" onclick="showScreen('screenLanding')">← Back</button>
+          <button class="btn btn-primary" id="signInBtn" onclick="submitSignIn()">Sign In →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       SCREEN 4: EMAIL NOT FOUND — "Was this a mistake?"
+  ══════════════════════════════════════════════ -->
+  <div id="screenEmailNotFound" class="screen">
+    <div class="onboarding-wrap">
+      <div class="onboard-card" style="text-align:center">
+        <div class="onboard-emoji">🤔</div>
+        <div class="onboard-title">Hmm, we don't recognise that email</div>
+        <div class="onboard-sub" id="notFoundEmailDisplay">Was this a typo, or are you new here?</div>
+        <div class="btn-row" style="flex-direction:column;gap:12px;margin-top:8px">
+          <button class="btn btn-primary" onclick="convertNotFoundToSignUp()">🚀 Sign me up instead</button>
+          <button class="btn btn-ghost" onclick="showScreen('screenSignIn')">← Try a different email</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       SCREEN 5: ONBOARDING SURVEY (6 steps)
   ══════════════════════════════════════════════ -->
   <div id="screenSurvey" class="screen">
     <div class="onboarding-wrap">
       <div class="step-indicator" id="surveyDots"></div>
-      <div id="surveyCard" class="onboard-card">
-        <!-- injected by JS -->
+      <div id="surveyCard" class="onboard-card"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       SCREEN 6: IDENTITY SETUP (username + display name)
+  ══════════════════════════════════════════════ -->
+  <div id="screenIdentity" class="screen">
+    <div class="onboarding-wrap">
+      <div class="onboard-card">
+        <div class="onboard-emoji">🎮</div>
+        <div class="onboard-title">Claim your identity</div>
+        <div class="onboard-sub">Your @username is permanent — choose wisely. Your display name can always be changed.</div>
+
+        <div class="form-group">
+          <label>@Username <span style="color:var(--red);font-size:0.75rem">permanent</span></label>
+          <div style="position:relative">
+            <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);font-weight:700">@</span>
+            <input type="text" id="usernameInput" placeholder="yourhandle"
+              style="padding-left:28px;font-family:'Space Mono',monospace"
+              maxlength="20" oninput="onUsernameInput()" />
+          </div>
+          <div id="usernameStatus" style="font-size:0.78rem;margin-top:6px;min-height:18px"></div>
+        </div>
+
+        <div class="form-group">
+          <label>Display Name <span style="color:var(--green);font-size:0.75rem">changeable</span></label>
+          <input type="text" id="displayNameInput" placeholder="How you'll appear to others (optional)" maxlength="50" />
+          <div style="font-size:0.75rem;color:var(--muted);margin-top:6px">Leave blank to just show your @username</div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" id="identityBtn" onclick="submitIdentity()">🚀 Let's Go!</button>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- ══════════════════════════════════════════════
-       SCREEN 3: DASHBOARD
+       SCREEN 7: DASHBOARD
   ══════════════════════════════════════════════ -->
+
+  <div id="screenDash" class="screen">
+    <div class="companion" id="companion">
+      <div class="companion-avatar">⚡</div>
+      <div class="companion-text">
+        <div class="greeting" id="companionGreeting">Hey there!</div>
+        <div class="message" id="companionMessage">Loading your stats…</div>
+      </div>
+    </div>
+    <div class="dashboard-top">
+      <div class="section-title">Today's Habits</div>
+      <button class="btn btn-secondary" style="width:auto;padding:10px 18px" onclick="openAddModal()">+ New Habit</button>
+    </div>
+    <div id="habitsGrid" class="habits-grid"></div>
+  </div>
+
+</div>
+
+<!-- MODAL: ADD HABIT -->
+<div class="modal-overlay" id="addModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">New Habit</div>
+      <button class="close-btn" onclick="closeModal('addModal')">✕</button>
+    </div>
+    <div class="form-group">
+      <label>Habit Name</label>
+      <input type="text" id="habitName" placeholder="e.g. Morning Run" maxlength="100" />
+    </div>
+    <div class="form-group">
+      <label>Description (optional)</label>
+      <textarea id="habitDesc" placeholder="e.g. Run at least 1km every morning" maxlength="500"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Proof Instructions</label>
+      <textarea id="habitProof" placeholder="e.g. Screenshot of fitness app showing today's run" maxlength="1000"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="addHabitBtn" onclick="addHabit()">Create Habit</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: VERIFY HABIT -->
+<div class="modal-overlay" id="verifyModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="verifyModalTitle">Verify Habit</div>
+      <button class="close-btn" id="verifyCloseBtn" onclick="closeModal('verifyModal')">✕</button>
+    </div>
+    <div id="verifyForm">
+      <div class="proof-hint">
+        <strong>📋 What counts as proof:</strong>
+        <span id="proofInstructions"></span>
+      </div>
+      <div class="upload-zone" id="uploadZone" onclick="document.getElementById('proofFile').click()">
+        <input type="file" id="proofFile" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" onchange="handleFileSelect(this)" />
+        <div class="upload-zone-icon">📷</div>
+        <div class="upload-zone-text" id="uploadText"><strong>Upload proof image</strong><br>click to browse</div>
+      </div>
+      <div class="form-group">
+        <label>Or add a note</label>
+        <textarea id="proofNote" placeholder="Describe what you did…" maxlength="2000"></textarea>
+      </div>
+      <button class="btn btn-primary" id="verifyBtn" onclick="submitVerification()">🤖 Verify with AI</button>
+    </div>
+    <div id="verifyLoading" style="display:none">
+      <div class="verifying-state">
+        <div class="spinner"></div>
+        <p>AI is reviewing your proof…</p>
+      </div>
+    </div>
+    <div id="verifyResult" style="display:none"></div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ─── CONFIG ───────────────────────────────────────────────────────────────────
+const API = 'https://habit-tracker-ai-production.up.railway.app/api';
+const TZ_OFFSET = new Date().getTimezoneOffset();
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let currentUser    = null;
+let currentHabitId = null;
+let habits         = [];
+let isVerifying    = false;
+let pendingSignUpEmail = null; // holds email when redirecting from "not found" to sign up
+let usernameCheckTimer = null; // debounce timer for username availability
+
+let surveyAnswers = {
+  role: null, focus: [], obstacle: null,
+  intensity: null, motivation: [], busyness: null
+};
+
+// ─── SURVEY DEFINITION ────────────────────────────────────────────────────────
+const SURVEY_STEPS = [
+  {
+    id: 'role', emoji: '👋',
+    title: "First things first…",
+    sub: "What best describes your situation right now?",
+    type: 'single', key: 'role',
+    options: [
+      { value: 'student',  emoji: '🎓',   label: 'Student' },
+      { value: 'working',  emoji: '💼',   label: 'Working' },
+      { value: 'both',     emoji: '🎓💼', label: 'Both' },
+      { value: 'neither',  emoji: '🏠',   label: 'Neither' }
+    ]
+  },
+  {
+    id: 'focus', emoji: '🎯',
+    title: "What do you want to improve?",
+    sub: "Pick everything that matters to you. No wrong answers.",
+    type: 'multi', key: 'focus',
+    options: [
+      { value: 'fitness',      emoji: '🏋️', label: 'Health & Fitness' },
+      { value: 'wellbeing',    emoji: '🧠', label: 'Mental Health & Wellbeing' },
+      { value: 'home',         emoji: '🏠', label: 'Home & Chores' },
+      { value: 'productivity', emoji: '⚡', label: 'Productivity & Work' },
+      { value: 'school',       emoji: '📚', label: 'School & Studying' },
+      { value: 'nutrition',    emoji: '🍎', label: 'Food & Nutrition' },
+      { value: 'finance',      emoji: '💸', label: 'Finance' },
+      { value: 'social',       emoji: '👥', label: 'Social & Relationships' }
+    ]
+  },
+  {
+    id: 'obstacle', emoji: '🚧',
+    title: "What's your biggest obstacle?",
+    sub: "Pick the one thing that holds you back the most.",
+    type: 'single', key: 'obstacle',
+    options: [
+      { value: 'motivation', emoji: '😴', label: 'Low motivation' },
+      { value: 'forgetting', emoji: '🫠', label: 'I just forget' },
+      { value: 'overwhelm',  emoji: '🌊', label: 'Too much to do at once' },
+      { value: 'boredom',    emoji: '😐', label: 'Things get boring fast' }
+    ]
+  },
+  {
+    id: 'intensity', emoji: '🔥',
+    title: "How hard do you want to be pushed?",
+    sub: "You can always change this later.",
+    type: 'intensity', key: 'intensity',
+    options: [
+      { value: 'chill',    emoji: '😌', label: 'Chill',    sub: 'Gentle nudges, forgiving streaks.' },
+      { value: 'balanced', emoji: '⚖️',  label: 'Balanced', sub: 'The sweet spot for most people.' },
+      { value: 'intense',  emoji: '💪', label: 'Intense',  sub: 'High standards, few excuses.' }
+    ]
+  },
+  {
+    id: 'motivation', emoji: '✨',
+    title: "What actually motivates you?",
+    sub: "Pick all that apply — we'll lean into these.",
+    type: 'multi', key: 'motivation',
+    options: [
+      { value: 'rewards',       emoji: '🏆', label: 'Rewards & XP' },
+      { value: 'streaks',       emoji: '🔥', label: 'Keeping streaks alive' },
+      { value: 'progress',      emoji: '📈', label: 'Seeing progress visually' },
+      { value: 'competition',   emoji: '🥇', label: 'Competing with others' },
+      { value: 'encouragement', emoji: '💬', label: 'Encouragement & support' }
+    ]
+  },
+  {
+    id: 'busyness', emoji: '📅',
+    title: "How packed is your day usually?",
+    sub: "This helps us keep suggestions realistic.",
+    type: 'single', key: 'busyness',
+    options: [
+      { value: 'light',    emoji: '🌅', label: 'Pretty relaxed — I have time.' },
+      { value: 'moderate', emoji: '🌤', label: 'Moderate — some breathing room.' },
+      { value: 'packed',   emoji: '🌪', label: 'Packed — every minute counts!' }
+    ]
+  }
+];
+
+let currentSurveyStep = 0;
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+window.onload = () => {
+  const savedId = localStorage.getItem('userId');
+  if (savedId) loadUser(savedId);
+};
+
+// ─── SCREENS ──────────────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ─── SIGN UP ──────────────────────────────────────────────────────────────────
+async function submitSignUp() {
+  const email = document.getElementById('signUpEmail').value.trim().toLowerCase();
+  if (!email) return toast('Please enter your email', 'error');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return toast('Please enter a valid email', 'error');
+
+  const btn = document.getElementById('signUpBtn');
+  btn.disabled = true;
+  btn.textContent = 'Creating…';
+
+  try {
+    const res  = await fetch(`${API}/users`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+
+    btn.disabled = false;
+    btn.textContent = 'Continue →';
+
+    if (res.status === 409) {
+      // Email already exists — offer to sign in instead
+      toast('That email already has an account — signing you in!', 'success');
+      await signInWithEmail(email);
+      return;
+    }
+
+    if (!res.ok) return toast(data.error || 'Could not create account', 'error');
+
+    localStorage.setItem('userId', data.id);
+    currentUser = data;
+    // Start survey
+    currentSurveyStep = 0;
+    surveyAnswers = { role: null, focus: [], obstacle: null, intensity: null, motivation: [], busyness: null };
+    showScreen('screenSurvey');
+    renderSurveyStep();
+
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = 'Continue →';
+    toast('Cannot connect to server. Is it running?', 'error');
+  }
+}
+
+// ─── SIGN IN ──────────────────────────────────────────────────────────────────
+async function submitSignIn() {
+  const email = document.getElementById('signInEmail').value.trim().toLowerCase();
+  if (!email) return toast('Please enter your email', 'error');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return toast('Please enter a valid email', 'error');
+
+  const btn = document.getElementById('signInBtn');
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+
+  await signInWithEmail(email);
+
+  btn.disabled = false;
+  btn.textContent = 'Sign In →';
+}
+
+async function signInWithEmail(email) {
+  try {
+    const res  = await fetch(`${API}/users/signin`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+
+    if (res.status === 404) {
+      // Email not found — show the "was this a mistake?" screen
+      pendingSignUpEmail = email;
+      document.getElementById('notFoundEmailDisplay').textContent =
+        `We couldn't find an account for ${email}. Was this a typo, or are you new here?`;
+      showScreen('screenEmailNotFound');
+      return;
+    }
+
+    if (!res.ok) {
+      toast(data.error || 'Could not sign in', 'error');
+      return;
+    }
+
+    localStorage.setItem('userId', data.id);
+    currentUser = data;
+
+    if (!data.onboarding_complete) {
+      // They exist but never finished onboarding
+      currentSurveyStep = 0;
+      surveyAnswers = { role: null, focus: [], obstacle: null, intensity: null, motivation: [], busyness: null };
+      showScreen('screenSurvey');
+      renderSurveyStep();
+    } else {
+      await loadUser(data.id);
+      toast(`Welcome back! 🎉`, 'success');
+    }
+
+  } catch (e) {
+    toast('Cannot connect to server. Is it running?', 'error');
+  }
+}
+
+// Called when user on the "not found" screen clicks "Sign me up instead"
+async function convertNotFoundToSignUp() {
+  if (!pendingSignUpEmail) { showScreen('screenSignUp'); return; }
+
+  try {
+    const res  = await fetch(`${API}/users`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: pendingSignUpEmail })
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      toast(data.error || 'Could not create account', 'error');
+      return;
+    }
+
+    localStorage.setItem('userId', data.id);
+    currentUser = data;
+    pendingSignUpEmail = null;
+    currentSurveyStep = 0;
+    surveyAnswers = { role: null, focus: [], obstacle: null, intensity: null, motivation: [], busyness: null };
+    showScreen('screenSurvey');
+    renderSurveyStep();
+
+  } catch (e) {
+    toast('Cannot connect to server.', 'error');
+  }
+}
+
+// ─── SURVEY ───────────────────────────────────────────────────────────────────
+function renderStepDots(containerId, current, total) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = Array.from({ length: total }, (_, i) => {
+    const cls = i + 1 < current ? 'done' : i + 1 === current ? 'active' : '';
+    return `<div class="step-dot ${cls}"></div>`;
+  }).join('');
+}
+
+function renderSurveyStep() {
+  const step  = SURVEY_STEPS[currentSurveyStep];
+  const total = SURVEY_STEPS.length;
+  renderStepDots('surveyDots', currentSurveyStep + 1, total);
+
+  const card = document.getElementById('surveyCard');
+  card.style.animation = 'none';
+  card.offsetHeight;
+  card.style.animation = '';
+
+  let optionsHTML = '';
+
+  if (step.type === 'intensity') {
+    optionsHTML = `<div class="intensity-grid">` +
+      step.options.map(o => `
+        <button class="intensity-btn ${surveyAnswers[step.key] === o.value ? 'selected' : ''}"
+                onclick="selectIntensity('${o.value}', this)">
+          <div class="i-emoji">${o.emoji}</div>
+          <div class="i-label">${o.label}</div>
+          <div class="i-sub">${o.sub}</div>
+        </button>`).join('') + `</div>`;
+  } else {
+    const selected = step.type === 'multi' ? (surveyAnswers[step.key] || []) : [];
+    optionsHTML = `<div class="choice-grid">` +
+      step.options.map(o => {
+        const isSel = step.type === 'multi' ? selected.includes(o.value) : surveyAnswers[step.key] === o.value;
+        return `
+          <button class="choice-btn ${isSel ? 'selected' : ''}"
+                  onclick="selectChoice('${step.key}', '${o.value}', '${step.type}', this)">
+            <span class="choice-emoji">${o.emoji}</span>
+            <span>${o.label}</span>
+          </button>`;
+      }).join('') + `</div>`;
+  }
+
+  const isLast  = currentSurveyStep === total - 1;
+  const isFirst = currentSurveyStep === 0;
+
+  card.innerHTML = `
+    <div class="onboard-emoji">${step.emoji}</div>
+    <div class="onboard-title">${step.title}</div>
+    <div class="onboard-sub">${step.sub}</div>
+    ${optionsHTML}
+    <div class="btn-row">
+      ${isFirst ? '' : `<button class="btn btn-ghost" onclick="prevSurveyStep()">← Back</button>`}
+      <button class="btn btn-primary" id="surveyNextBtn" onclick="nextSurveyStep()">
+        ${isLast ? 'Next →' : 'Next →'}
+      </button>
+    </div>`;
+}
+
+function selectChoice(key, value, type, btn) {
+  if (type === 'single') {
+    surveyAnswers[key] = value;
+    btn.closest('.choice-grid').querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  } else {
+    if (!Array.isArray(surveyAnswers[key])) surveyAnswers[key] = [];
+    const idx = surveyAnswers[key].indexOf(value);
+    if (idx === -1) { surveyAnswers[key].push(value); btn.classList.add('selected'); }
+    else { surveyAnswers[key].splice(idx, 1); btn.classList.remove('selected'); }
+  }
+}
+
+function selectIntensity(value, btn) {
+  surveyAnswers.intensity = value;
+  document.querySelectorAll('.intensity-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function nextSurveyStep() {
+  const step = SURVEY_STEPS[currentSurveyStep];
+  if (step.type === 'single' || step.type === 'intensity') {
+    if (!surveyAnswers[step.key]) return toast('Please make a selection to continue', 'error');
+  } else if (step.type === 'multi') {
+    if (!surveyAnswers[step.key] || surveyAnswers[step.key].length === 0) {
+      return toast('Pick at least one option', 'error');
+    }
+  }
+
+  if (currentSurveyStep < SURVEY_STEPS.length - 1) {
+    currentSurveyStep++;
+    renderSurveyStep();
+  } else {
+    submitSurvey();
+  }
+}
+
+function prevSurveyStep() {
+  if (currentSurveyStep > 0) { currentSurveyStep--; renderSurveyStep(); }
+}
+
+async function submitSurvey() {
+  const btn = document.getElementById('surveyNextBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  try {
+    const res = await fetch(`${API}/users/${currentUser.id}/profile`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ profile: surveyAnswers })
+    });
+
+    if (!res.ok) throw new Error('Failed');
+
+    // Survey done — move to identity setup
+    showScreen('screenIdentity');
+
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = 'Next →';
+    toast('Could not save. Please try again.', 'error');
+  }
+}
+
+// ─── IDENTITY SETUP ───────────────────────────────────────────────────────────
+let usernameAvailable = false;
+
+function onUsernameInput() {
+  const input = document.getElementById('usernameInput').value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+  document.getElementById('usernameInput').value = input;
+
+  const status = document.getElementById('usernameStatus');
+  status.textContent = '';
+  usernameAvailable = false;
+
+  if (!input) return;
+  if (input.length < 3) {
+    status.style.color = 'var(--muted)';
+    status.textContent = 'Minimum 3 characters';
+    return;
+  }
+
+  // Debounce — wait 500ms after typing stops before checking
+  clearTimeout(usernameCheckTimer);
+  status.style.color = 'var(--muted)';
+  status.textContent = 'Checking…';
+
+  usernameCheckTimer = setTimeout(async () => {
+    try {
+      const res  = await fetch(`${API}/users/check-username/${input}`);
+      const data = await res.json();
+
+      if (data.available) {
+        usernameAvailable = true;
+        status.style.color = 'var(--green)';
+        status.textContent = '✓ Available!';
+      } else {
+        usernameAvailable = false;
+        status.style.color = 'var(--red)';
+        status.textContent = data.reason || 'Not available';
+      }
+    } catch (e) {
+      status.textContent = '';
+    }
+  }, 500);
+}
+
+async function submitIdentity() {
+  const username    = document.getElementById('usernameInput').value.trim().toLowerCase();
+  const displayName = document.getElementById('displayNameInput').value.trim();
+
+  if (!username) return toast('Please choose a @username', 'error');
+  if (!usernameAvailable) return toast('That username is not available', 'error');
+
+  const btn = document.getElementById('identityBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  try {
+    // Save identity
+    const idRes = await fetch(`${API}/users/${currentUser.id}/identity`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, display_name: displayName || null })
+    });
+
+    if (!idRes.ok) {
+      const err = await idRes.json();
+      btn.disabled = false;
+      btn.textContent = "🚀 Let's Go!";
+      return toast(err.error || 'Could not save', 'error');
+    }
+
+    // Mark onboarding complete
+    await fetch(`${API}/users/${currentUser.id}/complete-onboarding`, { method: 'PUT' });
+
+    // Load full user and go to dashboard
+    await loadUser(currentUser.id);
+    toast(`Welcome to HabituAI, @${username}! 🎉`, 'success');
+
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = "🚀 Let's Go!";
+    toast('Could not save identity. Please try again.', 'error');
+  }
+}
+
+// ─── USER ─────────────────────────────────────────────────────────────────────
+async function loadUser(id) {
+  try {
+    const res = await fetch(`${API}/users/${id}`);
+    if (!res.ok) { localStorage.removeItem('userId'); showScreen('screenLanding'); return; }
+    currentUser = await res.json();
+    if (currentUser.profile && typeof currentUser.profile === 'string') {
+      try { currentUser.profile = JSON.parse(currentUser.profile); } catch(e) {}
+    }
+    showScreen('screenDash');
+    updateXpWidget();
+    renderCompanionGreeting();
+    loadHabits();
+  } catch (e) {
+    toast('Cannot connect to server. Is it running?', 'error');
+  }
+}
+
+function updateXpWidget(overrides = {}) {
+  if (!currentUser) return;
+  const xp    = overrides.xp    ?? currentUser.xp;
+  const level = overrides.level ?? currentUser.level;
+  const pct   = overrides.pct   ?? currentUser.xpProgressPercent ?? 0;
+  document.getElementById('xpWidget').style.display = 'flex';
+  document.getElementById('levelBadge').textContent = `LVL ${level}`;
+  document.getElementById('xpText').textContent = `${xp} XP`;
+  document.getElementById('xpFill').style.width = pct + '%';
+}
+
+// ─── COMPANION ────────────────────────────────────────────────────────────────
+function renderCompanionGreeting() {
+  if (!currentUser) return;
+  const hour = new Date().getHours();
+  const timeGreeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+  const name = currentUser.display_name || `@${currentUser.username}` || currentUser.email.split('@')[0];
+  document.getElementById('companionGreeting').textContent = `${timeGreeting}, ${name}! 👋`;
+
+  const doneToday  = habits.filter(h => h.completedToday).length;
+  const totalToday = habits.length;
+  const streak     = habits.length > 0 ? Math.max(...habits.map(h => h.streak)) : 0;
+  const intensity  = currentUser.profile?.intensity;
+  let message = '';
+
+  if (totalToday === 0) {
+    message = "No habits yet — create your first one to start earning XP!";
+  } else if (doneToday === totalToday) {
+    message = `You crushed everything today! All ${totalToday} done. Come back tomorrow. 🏆`;
+  } else if (doneToday === 0) {
+    message = intensity === 'intense'
+      ? `${totalToday} habit${totalToday > 1 ? 's' : ''} waiting. You set the bar high — now clear it.`
+      : `You've got ${totalToday} habit${totalToday > 1 ? 's' : ''} today. Let's make it ${streak + 1} days! 💪`;
+  } else {
+    message = `${doneToday} of ${totalToday} done — ${totalToday - doneToday} more to go. Keep the momentum!`;
+  }
+
+  if (streak >= 3 && doneToday < totalToday) message += ` 🔥 ${streak}-day streak on the line!`;
+  document.getElementById('companionMessage').textContent = message;
+}
+
+// ─── HABITS ───────────────────────────────────────────────────────────────────
+async function loadHabits() {
+  if (!currentUser) return;
+  try {
+    const res = await fetch(`${API}/users/${currentUser.id}/habits?tzOffset=${TZ_OFFSET}`);
+    if (!res.ok) throw new Error('Server error');
+    habits = await res.json();
+    renderHabits();
+    renderCompanionGreeting();
+  } catch (e) {
+    document.getElementById('habitsGrid').innerHTML = `
+      <div class="empty-state">
+        <div class="e-emoji">⚠️</div>
+        <h3>Could not load habits</h3>
+        <p><a href="javascript:loadHabits()" style="color:var(--accent)">Try again</a></p>
+      </div>`;
+  }
+}
+
+function renderHabits() {
+  const grid = document.getElementById('habitsGrid');
+  if (habits.length === 0) {
+    grid.innerHTML = `
+      <div class="empty-state">
+        <div class="e-emoji">🌱</div>
+        <h3>No habits yet</h3>
+        <p>Create your first habit to start earning XP</p>
+        <button class="btn btn-primary" onclick="openAddModal()">+ Create Habit</button>
+      </div>`;
+    return;
+  }
+  grid.innerHTML = habits.map(h => `
+    <div class="habit-card ${h.completedToday ? 'done' : ''}">
+      <div class="habit-card-top">
+        <div class="habit-name">${escHtml(h.name)}</div>
+        ${h.completedToday ? '<span class="done-badge">✓ DONE</span>' : ''}
+      </div>
+      ${h.description ? `<p class="habit-desc">${escHtml(h.description)}</p>` : ''}
+      <div class="habit-stats">
+        <div class="stat-pill streak">🔥 ${h.streak} day streak</div>
+        <div class="stat-pill total">⚡ ${h.total_completions} total</div>
+      </div>
+      <div class="habit-actions">
+        ${h.completedToday
+          ? `<button class="btn-verify" disabled>✓ Verified Today</button>`
+          : `<button class="btn-verify" onclick="openVerifyModal(${h.id})">🤖 Submit Proof</button>`}
+        <button class="btn btn-danger" onclick="deleteHabit(${h.id}, ${currentUser.id})">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+// ─── ADD HABIT ────────────────────────────────────────────────────────────────
+function openAddModal() {
+  document.getElementById('habitName').value = '';
+  document.getElementById('habitDesc').value = '';
+  document.getElementById('habitProof').value = '';
+  document.getElementById('addHabitBtn').disabled = false;
+  document.getElementById('addHabitBtn').textContent = 'Create Habit';
+  openModal('addModal');
+}
+
+async function addHabit() {
+  const name               = document.getElementById('habitName').value.trim();
+  const description        = document.getElementById('habitDesc').value.trim();
+  const proof_instructions = document.getElementById('habitProof').value.trim();
+  if (!name)               return toast('Habit name is required', 'error');
+  if (!proof_instructions) return toast('Proof instructions are required', 'error');
+
+  const btn = document.getElementById('addHabitBtn');
+  btn.disabled = true; btn.textContent = 'Creating…';
+
+  try {
+    const res  = await fetch(`${API}/users/${currentUser.id}/habits`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, description, proof_instructions })
+    });
+    const data = await res.json();
+    btn.disabled = false; btn.textContent = 'Create Habit';
+    if (!res.ok) return toast(data.error || 'Failed', 'error');
+    closeModal('addModal');
+    toast('Habit created! 🎯', 'success');
+    loadHabits();
+  } catch (e) {
+    btn.disabled = false; btn.textContent = 'Create Habit';
+    toast('Failed — is the server running?', 'error');
+  }
+}
+
+async function deleteHabit(id, userId) {
+  if (!confirm('Delete this habit and all its history?')) return;
+  try {
+    await fetch(`${API}/habits/${id}?userId=${userId}`, { method: 'DELETE' });
+    toast('Habit deleted', 'success');
+    loadHabits();
+  } catch (e) { toast('Could not delete habit', 'error'); }
+}
+
+// ─── VERIFY ───────────────────────────────────────────────────────────────────
+function openVerifyModal(habitId) {
+  const habit = habits.find(h => h.id === habitId);
+  if (!habit) return;
+  currentHabitId = habitId;
+  isVerifying = false;
+  document.getElementById('verifyModalTitle').textContent = `Verify: ${habit.name}`;
+  document.getElementById('proofInstructions').textContent = habit.proof_instructions;
+  document.getElementById('proofNote').value = '';
+  document.getElementById('proofFile').value = '';
+  document.getElementById('uploadZone').classList.remove('has-file');
+  document.getElementById('uploadText').innerHTML = '<strong>Upload proof image</strong><br>click to browse';
+  document.getElementById('verifyBtn').disabled = false;
+  document.getElementById('verifyBtn').textContent = '🤖 Verify with AI';
+  document.getElementById('verifyCloseBtn').style.display = 'flex';
+  document.getElementById('verifyForm').style.display = 'block';
+  document.getElementById('verifyLoading').style.display = 'none';
+  document.getElementById('verifyResult').style.display = 'none';
+  openModal('verifyModal');
+}
+
+function handleFileSelect(input) {
+  if (input.files[0]) {
+    document.getElementById('uploadZone').classList.add('has-file');
+    document.getElementById('uploadText').innerHTML = `<strong>✓ ${escHtml(input.files[0].name)}</strong><br>click to change`;
+  }
+}
+
+async function submitVerification() {
+  if (isVerifying) return;
+  const note = document.getElementById('proofNote').value.trim();
+  const file = document.getElementById('proofFile').files[0];
+  if (!file && !note) return toast('Please upload an image or add a note', 'error');
+
+  isVerifying = true;
+  document.getElementById('verifyBtn').disabled = true;
+  document.getElementById('verifyCloseBtn').style.display = 'none';
+  document.getElementById('verifyForm').style.display = 'none';
+  document.getElementById('verifyLoading').style.display = 'block';
+
+  try {
+    const formData = new FormData();
+    if (file) formData.append('proof_image', file);
+    if (note) formData.append('proof_note', note);
+    formData.append('tzOffset', TZ_OFFSET);
+
+    const res  = await fetch(`${API}/habits/${currentHabitId}/verify`, { method: 'POST', body: formData });
+    const data = await res.json();
+
+    document.getElementById('verifyLoading').style.display = 'none';
+    document.getElementById('verifyResult').style.display = 'block';
+    document.getElementById('verifyCloseBtn').style.display = 'flex';
+    isVerifying = false;
+
+    if (!res.ok) {
+      document.getElementById('verifyResult').innerHTML = `
+        <div class="result-card failure">
+          <div class="result-icon">⚠️</div>
+          <div class="result-title">Error</div>
+          <div class="result-explanation">${escHtml(data.error || 'Something went wrong')}</div>
+        </div>
+        <div class="result-actions">
+          <button class="btn btn-secondary" onclick="resetVerifyModal()">Try Again</button>
+          <button class="btn btn-primary" onclick="closeModal('verifyModal')">Close</button>
+        </div>`;
+      return;
+    }
+
+    if (data.verified) {
+      currentUser.xp = data.userXp; currentUser.level = data.userLevel;
+      updateXpWidget({ xp: data.userXp, level: data.userLevel, pct: data.xpProgressPercent });
+      loadHabits();
+    }
+
+    document.getElementById('verifyResult').innerHTML = `
+      <div class="result-card ${data.verified ? 'success' : 'failure'}">
+        <div class="result-icon">${data.verified ? '🏆' : '❌'}</div>
+        <div class="result-title">${data.verified ? 'Verified!' : 'Not Verified'}</div>
+        <div class="result-explanation">${escHtml(data.explanation)}</div>
+        ${data.verified ? `<div class="xp-gained">+${data.xpEarned} XP</div><div class="streak-callout">🔥 ${data.newStreak} day streak!</div>` : ''}
+      </div>
+      <div class="result-actions">
+        ${!data.verified ? `<button class="btn btn-secondary" onclick="resetVerifyModal()">Try Again</button>` : ''}
+        <button class="btn btn-primary" onclick="closeModal('verifyModal')">Done</button>
+      </div>`;
+
+  } catch (e) {
+    isVerifying = false;
+    document.getElementById('verifyLoading').style.display = 'none';
+    document.getElementById('verifyResult').style.display = 'block';
+    document.getElementById('verifyCloseBtn').style.display = 'flex';
+    document.getElementById('verifyResult').innerHTML = `
+      <div class="result-card failure">
+        <div class="result-icon">🔌</div><div class="result-title">Connection Error</div>
+        <div class="result-explanation">Could not reach the server.</div>
+      </div>
+      <div class="result-actions">
+        <button class="btn btn-secondary" onclick="resetVerifyModal()">Try Again</button>
+        <button class="btn btn-primary" onclick="closeModal('verifyModal')">Close</button>
+      </div>`;
+  }
+}
+
+function resetVerifyModal() {
+  isVerifying = false;
+  document.getElementById('verifyBtn').disabled = false;
+  document.getElementById('verifyBtn').textContent = '🤖 Verify with AI';
+  document.getElementById('proofNote').value = '';
+  document.getElementById('proofFile').value = '';
+  document.getElementById('uploadZone').classList.remove('has-file');
+  document.getElementById('uploadText').innerHTML = '<strong>Upload proof image</strong><br>click to browse';
+  document.getElementById('verifyForm').style.display = 'block';
+  document.getElementById('verifyLoading').style.display = 'none';
+  document.getElementById('verifyResult').style.display = 'none';
+}
+
+// ─── UTILITIES ────────────────────────────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add('active'); }
+function closeModal(id) {
+  if (id === 'verifyModal' && isVerifying) return;
+  document.getElementById(id).classList.remove('active');
+}
+
+function escHtml(str) {
+  const d = document.createElement('div');
+  d.appendChild(document.createTextNode(String(str || '')));
+  return d.innerHTML;
+}
+
+function toast(msg, type = 'success') {
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.textContent = msg;
+  document.getElementById('toastContainer').appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target !== overlay) return;
+    if (overlay.id === 'verifyModal' && isVerifying) return;
+    overlay.classList.remove('active');
+  });
+});
+</script>
+</body>
+</html>
   <div id="screenDash" class="screen">
 
     <!-- AI Companion Greeting -->
@@ -778,17 +1696,18 @@ const SURVEY_STEPS = [
       { value: 'social',       emoji: '👥', label: 'Social & Relationships' }
     ]
   },
- {
+  {
     id: 'obstacle',
     emoji: '🚧',
-    title: "What's your biggest obstacle?",
-    sub: "Pick the one thing that holds you back the most.",
+    title: "What gets in your way?",
+    sub: "Be honest — this helps the AI understand how to help you.",
     type: 'single',
     key: 'obstacle',
     options: [
       { value: 'motivation', emoji: '😴', label: 'Low motivation' },
       { value: 'forgetting', emoji: '🫠', label: 'I just forget' },
-      { value: 'overwhelm',  emoji: '🌊', label: 'Too much to do at once' },
+      { value: 'overwhelm',  emoji: '🌊', label: 'I get overwhelmed' },
+      { value: 'time',       emoji: '⏰', label: 'Not enough time' },
       { value: 'boredom',    emoji: '😐', label: 'Things get boring fast' }
     ]
   },
@@ -800,9 +1719,9 @@ const SURVEY_STEPS = [
     type: 'intensity',
     key: 'intensity',
     options: [
-      { value: 'chill',    emoji: '😌', label: 'Chill',    sub: 'Gentle nudges, forgiving streaks.' },
-      { value: 'balanced', emoji: '⚖️',  label: 'Balanced', sub: 'The sweet spot for most people.' },
-      { value: 'intense',  emoji: '💪', label: 'Intense',  sub: 'High standards, few excuses.' }
+      { value: 'chill',    emoji: '😌', label: 'Chill',    sub: 'Gentle nudges, forgiving streaks' },
+      { value: 'balanced', emoji: '⚖️',  label: 'Balanced', sub: 'The sweet spot for most people' },
+      { value: 'intense',  emoji: '💪', label: 'Intense',  sub: 'High standards, no excuses' }
     ]
   },
   {
@@ -824,13 +1743,13 @@ const SURVEY_STEPS = [
     id: 'busyness',
     emoji: '📅',
     title: "How packed is your day usually?",
-    sub: "This helps us keep suggestions realistic.",
+    sub: "This helps us suggest a realistic number of habits.",
     type: 'single',
     key: 'busyness',
     options: [
-      { value: 'light',    emoji: '🌅', label: 'Pretty relaxed — I have time.' },
-      { value: 'moderate', emoji: '🌤', label: 'Moderate — some breathing room.' },
-      { value: 'packed',   emoji: '🌪', label: 'Packed — every minute counts!' }
+      { value: 'light',    emoji: '🌅', label: 'Pretty relaxed — I have time' },
+      { value: 'moderate', emoji: '🌤', label: 'Moderate — some breathing room' },
+      { value: 'packed',   emoji: '🌪', label: 'Packed — every minute counts' }
     ]
   }
 ];

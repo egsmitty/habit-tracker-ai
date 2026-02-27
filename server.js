@@ -110,9 +110,11 @@ function cleanupFile(filePath) {
   });
 }
 
-// Input length limits to prevent abuse
+// Input length limits
 const LIMITS = {
-  name: 100,
+  display_name: 50,
+  username: 20,
+  bio: 150,
   description: 500,
   proof_instructions: 1000,
   proof_note: 2000,
@@ -124,38 +126,81 @@ function truncate(str, max) {
   return String(str).slice(0, max);
 }
 
+// Username rules: lowercase letters, numbers, underscores
+// 3-20 chars, must start with a letter, no consecutive underscores
+const USERNAME_REGEX = /^[a-z][a-z0-9_]{2,19}$/;
+
+// Basic blocklist — common inappropriate/reserved words
+const USERNAME_BLOCKLIST = [
+  'admin','administrator','moderator','mod','staff','support','help',
+  'habituai','habitu','system','root','null','undefined','test',
+  'fuck','shit','ass','bitch','cunt','dick','cock','pussy','nigger',
+  'nigga','fag','faggot','retard','whore','slut','rape','kill','nazi',
+  'hitler','porn','sex','nude','nudes','penis','vagina'
+];
+
+function validateUsername(username) {
+  if (!username) return 'Username is required';
+  if (!USERNAME_REGEX.test(username)) {
+    return 'Username must be 3-20 characters, start with a letter, and only contain letters, numbers, and underscores';
+  }
+  if (/__/.test(username)) return 'Username cannot contain consecutive underscores';
+  if (USERNAME_BLOCKLIST.some(w => username.includes(w))) {
+    return 'That username is not allowed';
+  }
+  return null; // valid
+}
+
 // ─── USER ROUTES ──────────────────────────────────────────────────────────────
 
+// SIGN UP — create a new account (email only, no password yet)
 app.post('/api/users', (req, res) => {
-  let { name, email } = req.body;
-
-  name = truncate(name, LIMITS.name)?.trim();
+  let { email } = req.body;
   email = truncate(email, LIMITS.email)?.trim().toLowerCase();
 
-  if (!name || !email) {
-    return res.status(400).json({ error: 'Name and email are required' });
-  }
-
-  // Basic email format check
+  if (!email) return res.status(400).json({ error: 'Email is required' });
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return res.status(400).json({ error: 'Please enter a valid email address' });
   }
 
+  // Check if email already exists — return conflict so frontend can handle it
+  const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(email);
+  if (existing) {
+    return res.status(409).json({ error: 'EMAIL_EXISTS' });
+  }
+
   try {
-    const result = db.prepare('INSERT INTO users (name, email) VALUES (?, ?)').run(name, email);
+    const result = db.prepare('INSERT INTO users (email) VALUES (?)').run(email);
     const user = db.prepare('SELECT * FROM users WHERE id = ?').get(result.lastInsertRowid);
     res.status(201).json(user);
   } catch (error) {
-    if (error.message.includes('UNIQUE constraint')) {
-      // If email exists, just log them in instead of erroring
-      const existing = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
-      if (existing) return res.status(200).json({ ...existing, alreadyExisted: true });
-    }
-    console.error('Create user error:', error);
-    res.status(500).json({ error: 'Could not create user' });
+    console.error('Sign up error:', error);
+    res.status(500).json({ error: 'Could not create account' });
   }
 });
 
+// SIGN IN — look up by email
+app.post('/api/users/signin', (req, res) => {
+  let { email } = req.body;
+  email = truncate(email, LIMITS.email)?.trim().toLowerCase();
+
+  if (!email) return res.status(400).json({ error: 'Email is required' });
+
+  const user = db.prepare('SELECT * FROM users WHERE email = ?').get(email);
+  if (!user) {
+    return res.status(404).json({ error: 'EMAIL_NOT_FOUND' });
+  }
+
+  const level = calculateLevel(user.xp);
+  res.json({
+    ...user,
+    level,
+    xpProgressPercent: xpProgressPercent(user.xp),
+    xpForNextLevel: xpForLevel(level)
+  });
+});
+
+// GET user by ID
 app.get('/api/users/:id', (req, res) => {
   const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
   if (!user) return res.status(404).json({ error: 'User not found' });
@@ -174,7 +219,51 @@ app.get('/api/users/:id', (req, res) => {
   });
 });
 
-// Save onboarding profile answers
+// CHECK username availability
+app.get('/api/users/check-username/:username', (req, res) => {
+  const username = req.params.username.toLowerCase();
+  const validationError = validateUsername(username);
+  if (validationError) return res.json({ available: false, reason: validationError });
+
+  const taken = db.prepare('SELECT id FROM users WHERE username = ?').get(username);
+  if (taken) return res.json({ available: false, reason: 'That username is already taken' });
+
+  res.json({ available: true });
+});
+
+// SAVE identity (display name + username) — called at end of onboarding
+app.put('/api/users/:id/identity', (req, res) => {
+  let { display_name, username } = req.body;
+
+  display_name = truncate(display_name, LIMITS.display_name)?.trim();
+  username = truncate(username, LIMITS.username)?.trim().toLowerCase();
+
+  if (!username) return res.status(400).json({ error: 'Username is required' });
+
+  const validationError = validateUsername(username);
+  if (validationError) return res.status(400).json({ error: validationError });
+
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  // Check username isn't taken by someone else
+  const taken = db.prepare('SELECT id FROM users WHERE username = ? AND id != ?').get(username, req.params.id);
+  if (taken) return res.status(400).json({ error: 'That username is already taken' });
+
+  try {
+    db.prepare(`
+      UPDATE users SET display_name = ?, username = ? WHERE id = ?
+    `).run(display_name || null, username, req.params.id);
+
+    const updated = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
+    res.json(updated);
+  } catch (error) {
+    console.error('Save identity error:', error);
+    res.status(500).json({ error: 'Could not save identity' });
+  }
+});
+
+// SAVE onboarding survey answers
 app.put('/api/users/:id/profile', (req, res) => {
   const { profile } = req.body;
   if (!profile || typeof profile !== 'object') {
@@ -185,15 +274,23 @@ app.put('/api/users/:id/profile', (req, res) => {
   if (!user) return res.status(404).json({ error: 'User not found' });
 
   try {
-    db.prepare(`
-      UPDATE users SET profile = ?, onboarding_complete = 1 WHERE id = ?
-    `).run(JSON.stringify(profile), req.params.id);
-
+    db.prepare('UPDATE users SET profile = ? WHERE id = ?').run(JSON.stringify(profile), req.params.id);
     const updated = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
     res.json({ ...updated, profile: JSON.parse(updated.profile) });
   } catch (error) {
     console.error('Save profile error:', error);
     res.status(500).json({ error: 'Could not save profile' });
+  }
+});
+
+// COMPLETE onboarding — called after identity is set
+app.put('/api/users/:id/complete-onboarding', (req, res) => {
+  try {
+    db.prepare('UPDATE users SET onboarding_complete = 1 WHERE id = ?').run(req.params.id);
+    const updated = db.prepare('SELECT * FROM users WHERE id = ?').get(req.params.id);
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ error: 'Could not complete onboarding' });
   }
 });
 

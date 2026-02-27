@@ -8,8 +8,12 @@ db.pragma('journal_mode = WAL');
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
+    display_name TEXT,
+    username TEXT UNIQUE,
+    bio TEXT DEFAULT '',
+    banner_color TEXT DEFAULT '#7c3aed',
+    username_changed INTEGER DEFAULT 0,
     xp INTEGER DEFAULT 0,
     level INTEGER DEFAULT 1,
     profile TEXT DEFAULT NULL,
@@ -48,20 +52,23 @@ db.exec(`
   );
 `);
 
-// Safely add new columns to existing databases
-// (If you already have a database, ALTER TABLE adds the missing columns without wiping data)
+// Safely add columns to existing databases without wiping data
 const addColumnIfMissing = (table, column, definition) => {
   const cols = db.prepare(`PRAGMA table_info(${table})`).all();
-  const exists = cols.some(c => c.name === column);
-  if (!exists) {
+  if (!cols.some(c => c.name === column)) {
     db.prepare(`ALTER TABLE ${table} ADD COLUMN ${column} ${definition}`).run();
     console.log(`✅ Added column: ${table}.${column}`);
   }
 };
 
-addColumnIfMissing('users', 'profile', 'TEXT DEFAULT NULL');
+addColumnIfMissing('users', 'profile',          'TEXT DEFAULT NULL');
 addColumnIfMissing('users', 'onboarding_complete', 'INTEGER DEFAULT 0');
-addColumnIfMissing('habits', 'frequency_type', "TEXT DEFAULT 'daily'");
+addColumnIfMissing('users', 'display_name',     'TEXT');
+addColumnIfMissing('users', 'username',         'TEXT UNIQUE');
+addColumnIfMissing('users', 'bio',              "TEXT DEFAULT ''");
+addColumnIfMissing('users', 'banner_color',     "TEXT DEFAULT '#7c3aed'");
+addColumnIfMissing('users', 'username_changed', 'INTEGER DEFAULT 0');
+addColumnIfMissing('habits', 'frequency_type',  "TEXT DEFAULT 'daily'");
 addColumnIfMissing('habits', 'frequency_count', 'INTEGER DEFAULT 1');
 
 console.log('✅ Database ready!');
