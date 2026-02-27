@@ -269,7 +269,15 @@
 
     .btn-primary  { background: var(--accent); color: #fff; }
     .btn-secondary { background: var(--border); color: var(--text); }
-    .btn-ghost    { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid transparent;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+
+    .btn-ghost:hover { color: var(--text); border-color: var(--border); }
 
     .btn-danger {
       background: transparent;
@@ -610,11 +618,11 @@
     <div class="onboarding-wrap">
       <div class="onboard-card" style="text-align:center">
         <div class="onboard-emoji">⚡</div>
-        <div class="onboard-title">Welcome to HabituAI</div>
+        <div class="onboard-title" style="font-size:1.5rem;white-space:nowrap">Welcome to HabituAI</div>
         <div class="onboard-sub">Your AI companion for leveling up real life.</div>
         <div class="btn-row" style="flex-direction:column;gap:12px">
           <button class="btn btn-primary" onclick="showScreen('screenSignUp')">🚀 Create Account</button>
-          <button class="btn btn-ghost" onclick="showScreen('screenSignIn')">Already have an account? Sign In</button>
+          <button class="btn btn-ghost" onclick="showScreen('screenSignIn')">Already have an account? Sign In →</button>
         </div>
       </div>
     </div>

@@ -64,7 +64,7 @@ const addColumnIfMissing = (table, column, definition) => {
 addColumnIfMissing('users', 'profile',          'TEXT DEFAULT NULL');
 addColumnIfMissing('users', 'onboarding_complete', 'INTEGER DEFAULT 0');
 addColumnIfMissing('users', 'display_name',     'TEXT');
-addColumnIfMissing('users', 'username',         'TEXT UNIQUE');
+addColumnIfMissing('users', 'username',         'TEXT');
 addColumnIfMissing('users', 'bio',              "TEXT DEFAULT ''");
 addColumnIfMissing('users', 'banner_color',     "TEXT DEFAULT '#7c3aed'");
 addColumnIfMissing('users', 'username_changed', 'INTEGER DEFAULT 0');
