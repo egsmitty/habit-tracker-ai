@@ -1,3 +1,11 @@
+if (process.env.DELETE_DB === 'true') {
+  const dbPath = path.join(__dirname, 'habits.db');
+  if (fs.existsSync(dbPath)) {
+    fs.unlinkSync(dbPath);
+    console.log('🗑️ Database wiped for fresh start');
+  }
+}
+
 // backend/database.js
 const Database = require('better-sqlite3');
 const path = require('path');
