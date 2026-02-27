@@ -778,18 +778,17 @@ const SURVEY_STEPS = [
       { value: 'social',       emoji: '👥', label: 'Social & Relationships' }
     ]
   },
-  {
+ {
     id: 'obstacle',
     emoji: '🚧',
-    title: "What gets in your way?",
-    sub: "Be honest — this helps the AI understand how to help you.",
+    title: "What's your biggest obstacle?",
+    sub: "Pick the one thing that holds you back the most.",
     type: 'single',
     key: 'obstacle',
     options: [
       { value: 'motivation', emoji: '😴', label: 'Low motivation' },
       { value: 'forgetting', emoji: '🫠', label: 'I just forget' },
-      { value: 'overwhelm',  emoji: '🌊', label: 'I get overwhelmed' },
-      { value: 'time',       emoji: '⏰', label: 'Not enough time' },
+      { value: 'overwhelm',  emoji: '🌊', label: 'Too much to do at once' },
       { value: 'boredom',    emoji: '😐', label: 'Things get boring fast' }
     ]
   },
@@ -801,9 +800,9 @@ const SURVEY_STEPS = [
     type: 'intensity',
     key: 'intensity',
     options: [
-      { value: 'chill',    emoji: '😌', label: 'Chill',    sub: 'Gentle nudges, forgiving streaks' },
-      { value: 'balanced', emoji: '⚖️',  label: 'Balanced', sub: 'The sweet spot for most people' },
-      { value: 'intense',  emoji: '💪', label: 'Intense',  sub: 'High standards, no excuses' }
+      { value: 'chill',    emoji: '😌', label: 'Chill',    sub: 'Gentle nudges, forgiving streaks.' },
+      { value: 'balanced', emoji: '⚖️',  label: 'Balanced', sub: 'The sweet spot for most people.' },
+      { value: 'intense',  emoji: '💪', label: 'Intense',  sub: 'High standards, few excuses.' }
     ]
   },
   {
@@ -825,13 +824,13 @@ const SURVEY_STEPS = [
     id: 'busyness',
     emoji: '📅',
     title: "How packed is your day usually?",
-    sub: "This helps us suggest a realistic number of habits.",
+    sub: "This helps us keep suggestions realistic.",
     type: 'single',
     key: 'busyness',
     options: [
-      { value: 'light',    emoji: '🌅', label: 'Pretty relaxed — I have time' },
-      { value: 'moderate', emoji: '🌤', label: 'Moderate — some breathing room' },
-      { value: 'packed',   emoji: '🌪', label: 'Packed — every minute counts' }
+      { value: 'light',    emoji: '🌅', label: 'Pretty relaxed — I have time.' },
+      { value: 'moderate', emoji: '🌤', label: 'Moderate — some breathing room.' },
+      { value: 'packed',   emoji: '🌪', label: 'Packed — every minute counts!' }
     ]
   }
 ];
